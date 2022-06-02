@@ -13,6 +13,10 @@ public class Variable extends Token {
         this.type = Type.VARIABLE;
     }
 
+    public List<Token> getValue() {
+        return this.value;
+    }
+
     @Override
     public String getToken() {
         return this.name;

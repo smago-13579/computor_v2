@@ -2,11 +2,8 @@ package edu.school21.analyze;
 
 import edu.school21.exceptions.InvalidFormException;
 import edu.school21.exceptions.InvalidSymbolException;
-import edu.school21.tokens.Equality;
-import edu.school21.tokens.Operator;
-import edu.school21.tokens.Token;
+import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
-import edu.school21.tokens.Variable;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -54,6 +51,10 @@ public class Lexer {
                 continue;
             }
 
+            if (c == '?') {
+                tokens.add(new Question());
+            }
+
             if (c == '.') {
                 throw new InvalidFormException("Invalid form: \".\"");
             }
@@ -61,35 +62,28 @@ public class Lexer {
     }
 
     private int parseVar(int i) {
-        String name = "";
+        StringBuilder name = new StringBuilder();
         int len = i;
-        name += form.charAt(len++);
+        name.append(form.charAt(len++));
 
         while (len != form.length() && ((form.charAt(len) >= 65 && form.charAt(len) <= 90)
                 || (form.charAt(len) >= 97 && form.charAt(len) <= 122))) {
-            name += form.charAt(len++);
+            name.append(form.charAt(len++));
         }
-        tokens.add(new Variable(name));
 
-//        while (len != form.length() && form.charAt(len) == ' ') {
-//            len++;
-//        }
+        if (len == form.length() || form.charAt(len) != '(') {
+            tokens.add(new Variable(name.toString()));
+        } else {
+            while (len != form.length() && form.charAt(len) != ')') {
+                name.append(form.charAt(len++));
+            }
 
-//        if (len == form.length() || form.charAt(len) != '^') {
-//            tokens.add(new Variable(token));
-//        } else if (len != form.length() && form.charAt(len) == '^') {
-//            token += form.charAt(len++);
-//
-//            while (len != form.length() && form.charAt(len) == ' ')
-//                len++;
-//
-//            while (len != form.length() && "1234567890".indexOf(form.charAt(len)) != -1)
-//                token += form.charAt(len++);
-//
-//            if (token.length() != 3)
-//                throw new InvalidFormException("Invalid equation degree");
-//            tokens.add(new Token(token));
-//        }
+            if (len == form.length()) {
+                throw new InvalidFormException("Invalid form: \"" + name + "\"");
+            }
+            name.append(form.charAt(len++));
+            tokens.add(new Function(name.toString()));
+        }
         return (len - 1);
     }
 
@@ -120,7 +114,7 @@ public class Lexer {
     }
 
     private boolean isValid(char c) {
-        String validSymbols = "()[] +-*/^%=1234567890;,.";
+        String validSymbols = "()[] +-*/^%=1234567890;,.?";
         return validSymbols.indexOf(c) != -1 || (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
     }
 

@@ -2,12 +2,12 @@ package edu.school21.types;
 
 public enum Type {
     VARIABLE,
+    FUNCTION,
+    MATRIX,
+    MEMBER,
     OPERATOR,
     NUMBER,
+    SQUARE_BRACKET,
     EQUALITY,
-    X0,
-    X1,
-    X2,
-    XN,
-    SQUARE_BRACKET
+    QUESTION
 }
