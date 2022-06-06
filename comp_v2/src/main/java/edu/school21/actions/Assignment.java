@@ -7,7 +7,6 @@ import edu.school21.types.Type;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Assignment {
@@ -54,18 +53,41 @@ public class Assignment {
             }
         });
         if (left.get(0).getType() == Type.VARIABLE) {
-            assignToVariable(left, right);
+            assignToVariable((Variable)left.get(0), newRight);
         }
 
         if (left.get(0).getType() == Type.FUNCTION) {
-            assignToFunction(left, right);
+            assignToFunction((Function)left.get(0), newRight);
         }
     }
 
-    private void assignToVariable(List<Token> left, List<Token> right) {
+    private void assignToVariable(Variable var, List<Token> right) {
+        List<Token> value = MathUtils.calculateOnePart(right);
 
+        if (data.getVariables().stream().noneMatch(v -> v.getToken().equalsIgnoreCase(var.getToken()))) {
+            var.setValue(value);
+            data.addVariable(var);
+        } else {
+            data.getVariables().forEach(v -> {
+                if (v.getToken().equalsIgnoreCase(var.getToken())) {
+                    v.setValue(value);
+                }
+            });
+        }
     }
 
-    private void assignToFunction(List<Token> left, List<Token> right) {
+    private void assignToFunction(Function func, List<Token> right) {
+        List<Token> value = MathUtils.calculateOnePart(right);
+
+        if (data.getFunctions().stream().noneMatch(f -> f.getName().equalsIgnoreCase(func.getName()))) {
+            func.setValue(value);
+            data.addFunction(func);
+        } else {
+            data.getFunctions().forEach(f -> {
+                if (f.getName().equalsIgnoreCase(func.getName())) {
+                    f.setValue(value);
+                }
+            });
+        }
     }
 }

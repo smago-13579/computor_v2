@@ -26,8 +26,26 @@ public class Member extends Token {
         return power;
     }
 
+    public void setPower(int power) {
+        this.power = power;
+    }
+
     @Override
     public String getToken() {
-        return this.name;
+        StringBuilder value = new StringBuilder();
+
+        if (this.num != 0) {
+            if (this.num % 1 == 0) {
+                value.append((long) this.num);
+            } else {
+                value.append(this.num);
+            }
+        }
+        value.append(this.name);
+
+        if (this.power > 1) {
+            value.append("^" + this.power);
+        }
+        return value.toString();
     }
 }

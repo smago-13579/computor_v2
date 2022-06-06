@@ -2,12 +2,20 @@ package edu.school21.tests;
 
 import edu.school21.analyze.Lexer;
 import edu.school21.analyze.Parser;
+import edu.school21.data.Data;
 import edu.school21.exceptions.InvalidFormException;
 import edu.school21.exceptions.InvalidSymbolException;
+import edu.school21.tokens.Number;
+import edu.school21.tokens.Operator;
+import edu.school21.tokens.Token;
 import edu.school21.types.Type;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -58,5 +66,34 @@ public class LexerTest {
     public void errorCheckParser(String form) {
         lexer.processing(form);
         assertThrows(InvalidFormException.class, () -> parser.processing(lexer.getTokens()));
+    }
+
+    @Test
+    public void extLst() {
+        List<Token> list = new LinkedList<>();
+        list.add(new Operator('('));
+        list.add(new Number(1));
+        list.add(new Number(2));
+        list.add(new Number(3));
+        list.add(new Operator(')'));
+
+        list.forEach(t -> System.out.println(t.getToken()));
+        for (Object t : list.subList(1, 4).toArray()) {
+            list.remove(t);
+        }
+        System.out.println("---------------");
+        list.forEach(t -> System.out.println(t.getToken()));
+
+        list.addAll(1, Arrays.asList(new Number(11), new Number(12), new Number(13)));
+        System.out.println("---------------");
+        list.forEach(t -> System.out.println(t.getToken()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"f(x) = (2 *x ^2+ 5*x^2 + 3*x + 10 - 5 - x)"})
+    public void assignmentTestA(String form) {
+        lexer.processing(form);
+        parser.processing(lexer.getTokens());
+        System.out.println((Data.getInstance().getFunctions().get(0).getValueToString()));
     }
 }

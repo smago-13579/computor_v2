@@ -17,6 +17,10 @@ public class Variable extends Token {
         return this.value;
     }
 
+    public void setValue(List<Token> value) {
+        this.value = value;
+    }
+
     @Override
     public String getToken() {
         return this.name;

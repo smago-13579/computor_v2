@@ -57,10 +57,10 @@ public class Parser {
                 }
             }
 
-            right = right.stream().filter(t -> t.getType() == Type.VARIABLE).map(t -> {
+            right = right.stream().map(t -> {
                 String name = ((Function) left.get(0)).getMemberName();
 
-                if (t.getToken().equalsIgnoreCase(name)) {
+                if (t.getType() == Type.VARIABLE && t.getToken().equalsIgnoreCase(name)) {
                     return new Member(name);
                 }
                 return t;

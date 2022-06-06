@@ -25,6 +25,14 @@ public abstract class Token {
         return num;
     }
 
+    public void setNum(float num) {
+        this.num = num;
+    }
+
+    public void setNegative() {
+        this.num = -this.num;
+    }
+
     public void setType(Type type) {
         this.type = type;
     }

@@ -28,6 +28,23 @@ public class Function extends Token {
         return this.value;
     }
 
+    public void setValue(List<Token> value) {
+        this.value = value;
+    }
+
+    public String getValueToString() {
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < value.size(); i++) {
+            builder.append(value.get(i).getToken());
+
+            if (i + 1 < value.size() && value.get(i + 1).getNum() >= 0) {
+                builder.append(" + ");
+            }
+        }
+        return builder.toString();
+    }
+
     @Override
     public String getToken() {
         return this.name + "(" + this.memberName + ")";
