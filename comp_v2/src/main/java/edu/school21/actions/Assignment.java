@@ -1,12 +1,14 @@
 package edu.school21.actions;
 
 import edu.school21.data.Data;
+import edu.school21.exceptions.VariableNotFoundException;
 import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
 import edu.school21.types.Type;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Assignment {
@@ -33,8 +35,9 @@ public class Assignment {
                 Function func = data.getFunctions().stream()
                         .filter(f -> f.getName().equalsIgnoreCase(((Function)t).getName())).findAny().get();
                 List<Token> value = func.getValue();
+                String varName = ((Function)t).getMemberName();
 
-                if (((Function)t).getMemberName().matches("-?\\d+(\\.\\d+)?")) {
+                if (varName.matches("-?\\d+(\\.\\d+)?")) {
                     float num = Float.parseFloat(((Function)t).getMemberName());
                     value = value.stream().map(token -> {
                         if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
@@ -44,7 +47,26 @@ public class Assignment {
                         }
                         return token;
                     }).collect(Collectors.toList());
+                } else if (left.get(0).getType() == Type.VARIABLE
+                        || !((Function)left.get(0)).getMemberName().equalsIgnoreCase(varName)) {
+                    List<Token> nValue = new LinkedList<>();
+                    Optional<Variable> var = data.getVariables().stream()
+                            .filter(v -> v.getToken().equalsIgnoreCase(varName))
+                            .findAny();
+
+                    if (var.isEmpty()) {
+                        throw new VariableNotFoundException(varName);
+                    }
+                    value.forEach(token -> {
+                        if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
+                            nValue.addAll(MathUtils.powerAndCalculate(var.get().getValue(), token));
+                        }
+                        nValue.add(token);
+                    });
+                    value = nValue;
+                    //TODO calculate this part
                 }
+                //TODO varB = f(varA) + 10;
                 newRight.add(new Operator('('));
                 newRight.addAll(value);
                 newRight.add(new Operator(')'));

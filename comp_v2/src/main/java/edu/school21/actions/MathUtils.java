@@ -20,41 +20,32 @@ public class MathUtils {
 
     public static List<Token> calculateOnePart(List<Token> tokens) {
         List<Token> newTokens = new LinkedList<>();
-        boolean progress;
         int first, last;
 
-        do {
-            progress = false;
+        for (int i = 0; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
 
-            for (int i = 0; i < tokens.size(); i++) {
-                Token t = tokens.get(i);
+            if (t.getType() == Type.OPERATOR && ((Operator)t).getMark() == Mark.CLOSE_PARENTHESIS) {
+                last = i--;
 
-                if (t.getType() == Type.OPERATOR && ((Operator)t).getMark() == Mark.CLOSE_PARENTHESIS) {
-                    last = i--;
+                while (tokens.get(i).getType() != Type.OPERATOR
+                        || ((Operator)tokens.get(i)).getMark() != Mark.OPEN_PARENTHESIS) {
+                    i--;
+                }
+                first = i;
+                tokens = calculateSegment(tokens, first, last);
+                last = first + 1;
 
-                    while (tokens.get(i).getType() != Type.OPERATOR
-                            || ((Operator)tokens.get(i)).getMark() != Mark.OPEN_PARENTHESIS) {
-                        i--;
-                    }
-                    first = i;
-                    tokens = calcInsideParenthesis(tokens, first, last);
-                    last = first + 1;
+                while (tokens.get(last).getType() != Type.OPERATOR
+                        || ((Operator)tokens.get(last)).getMark() != Mark.CLOSE_PARENTHESIS) {
+                    last++;
+                }
 
-                    while (tokens.get(last).getType() != Type.OPERATOR
-                            || ((Operator)tokens.get(last)).getMark() != Mark.CLOSE_PARENTHESIS) {
-                        last++;
-                    }
-
-                    if (!openParenthesis(tokens, first, last)) {
-                        i = last;
-                    }
-                    progress = true;
-                    break;
+                if (!openParenthesis(tokens, first, last)) {
+                    i = last;
                 }
             }
-
-        } while (progress);
-
+        }
         return tokens;
     }
 
@@ -70,9 +61,22 @@ public class MathUtils {
             aft = tokens.get(last + 1);
         }
 
-        if (last - first == 2 || (first == 0 && last == tokens.size() -1)
-                || (first == 0 && (((Operator)aft).getMark() == Mark.PLUS || ((Operator)aft).getMark() == Mark.MINUS))
-                || (last == tokens.size() - 1 && ((Operator)bef).getMark() == Mark.PLUS)) {
+        if (last - first == 2 || (bef == null && aft == null)
+                || ((bef == null || ((Operator)bef).getMark() == Mark.PLUS
+                || ((Operator)bef).getMark() == Mark.OPEN_PARENTHESIS)
+                && (aft == null || ((Operator)aft).getMark() == Mark.PLUS
+                || ((Operator)aft).getMark() == Mark.MINUS
+                || ((Operator)aft).getMark() == Mark.CLOSE_PARENTHESIS))) {
+            tokens.remove(last);
+            tokens.remove(first);
+            return true;
+        }
+
+        if ((aft == null || ((Operator) aft).getMark() == Mark.PLUS || ((Operator) aft).getMark() == Mark.MINUS)
+                && (bef != null && ((Operator)bef).getMark() == Mark.MINUS)) {
+            for (int i = first + 1; i < last; i++) {
+                i = modifyTokenWithMinus(tokens, i, last);
+            }
             tokens.remove(last);
             tokens.remove(first);
             return true;
@@ -81,7 +85,33 @@ public class MathUtils {
         return false;
     }
 
-    private static List<Token> calcInsideParenthesis(List<Token> tokens, int first, int last) {
+    private static int modifyTokenWithMinus(List<Token> tokens, int i, int last) {
+        if (tokens.get(i).getType() != Type.OPERATOR) {
+            tokens.get(i++).setNegative();
+
+            if (tokens.get(i).getType() != Type.OPERATOR) {
+                return i - 1;
+            }
+        }
+
+        while (i < last && tokens.get(i).getType() == Type.OPERATOR) {
+            Operator token = ((Operator) tokens.get(i));
+
+            //TODO is it possible
+            if (token.getMark() == Mark.PLUS || token.getMark() == Mark.MINUS) {
+                return i;
+            }
+
+            if (token.getMark() == Mark.OPEN_PARENTHESIS) {
+                while (((Operator) tokens.get(++i)).getMark() != Mark.CLOSE_PARENTHESIS);
+                return i;
+            }
+            i++;
+        }
+        return i;
+    }
+
+    private static List<Token> calculateSegment(List<Token> tokens, int first, int last) {
         while (true) {
             Optional<Token> optToken = tokens.subList(first + 1, last).stream().filter(t -> t.getType() == Type.OPERATOR
                     && ((Operator)t).getMark() == Mark.POWER).findFirst();
@@ -100,22 +130,43 @@ public class MathUtils {
                     || ((Operator)t).getMark() == Mark.DIVIDE
                     || ((Operator)t).getMark() == Mark.MODULO)).findFirst();
 
-            if (optToken.isPresent() && canBeDivided(tokens, optToken.get())) {
-                int i = tokens.indexOf(optToken.get());
-                Token token;
+            if (optToken.isPresent()) {
+                if (canBeDivided(tokens, optToken.get())) {
+                    int i = tokens.indexOf(optToken.get());
+                    Token token;
 
-                if (((Operator) optToken.get()).getMark() == Mark.MULTIPLY) {
-                    token = multiply(tokens.get(i - 1), tokens.get(i + 1));
-                } else if (((Operator) optToken.get()).getMark() == Mark.DIVIDE) {
-                    token = divide(tokens.get(i - 1), tokens.get(i + 1));
+                    if (((Operator) optToken.get()).getMark() == Mark.MULTIPLY) {
+                        token = multiply(tokens.get(i - 1), tokens.get(i + 1));
+                    } else if (((Operator) optToken.get()).getMark() == Mark.DIVIDE) {
+                        token = divide(tokens.get(i - 1), tokens.get(i + 1));
+                    } else {
+                        token = new Number(tokens.get(i - 1).getNum() % tokens.get(i + 1).getNum());
+                    }
+                    tokens.set(i - 1, token);
+                    tokens.remove(i + 1);
+                    tokens.remove(i);
+                    last -= 2;
+                    continue;
                 } else {
-                    token = new Number(tokens.get(i - 1).getNum() % tokens.get(i + 1).getNum());
-                }
-                tokens.set(i - 1, token);
-                tokens.remove(i + 1);
-                tokens.remove(i);
-                last -= 2;
-                continue;
+                    int i = tokens.indexOf(optToken.get());
+
+                    for (; i < last; i++) {
+                        Token token = tokens.get(i);
+
+                        if (token.getType() == Type.OPERATOR && (((Operator)token).getMark() == Mark.PLUS
+                                || ((Operator)token).getMark() == Mark.MINUS)
+                                && (tokens.get(i + 1).getType() == Type.NUMBER
+                                || tokens.get(i + 1).getType() == Type.MEMBER)) {
+                            if (((Operator)token).getMark() == Mark.MINUS) {
+                                tokens.get(i + 1).setNegative();
+                                tokens.set(i, new Operator('+'));
+                            }
+                            tokens = calculateSegment(tokens, i, last);
+                            break;
+                        }
+                    }
+                    break;
+                }//TODO calculate all segment parts
             }
             List<Token> tmpList = tokens.subList(first + 1, last).stream().filter(t -> t.getType() == Type.OPERATOR
                     && (((Operator)t).getMark() == Mark.MINUS
@@ -234,7 +285,35 @@ public class MathUtils {
                 + " and " + t2.getType());
     }
 
-    private static Token power(Token t1, Token t2) {
+    public static List<Token> powerAndCalculate(List<Token> value, Token t2) {
+        if (t2.getType() != Type.MEMBER || ((Member) t2).isImaginary()) {
+            throw new InvalidPowerException("Power must be positive integer or zero: " + t2.getToken());
+        }
+        int power = ((Member) t2).getPower();
+        float f = t2.getNum();
+        List<Token> result = power(value, power);
+        result.forEach(t -> t.setNum(f * t.getNum()));
+
+        return result;
+    }
+
+    public static List<Token> power(List<Token> value, int power) {
+        List<Token> result = new LinkedList<>(value);
+        List<Token> tmp = new LinkedList<>();
+
+        while (power-- > 2) {
+            for (int i = 0; i < value.size(); i++) {
+                for (int j = 0; j < result.size(); j++) {
+                    tmp.add(multiply(result.get(j), value.get(i)));
+                }
+            }
+            result = addition(tmp);
+            tmp = new LinkedList<>();
+        }
+        return result;
+    }
+
+    public static Token power(Token t1, Token t2) {
         if (t2.getType() != Type.NUMBER || t2.getNum() % 1 != 0) {
             throw new InvalidPowerException("Power must be positive integer or zero: " + t2.getToken());
         }

@@ -80,6 +80,13 @@ public class Parser {
     }
 
     private void checkExpression() {
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).getType() == Type.NUMBER && i + 1 < tokens.size()
+                    && (tokens.get(i + 1).getType() == Type.VARIABLE
+                    || tokens.get(i + 1).getType() == Type.FUNCTION)) {
+                tokens.add(i + 1, new Operator('*'));
+            }
+        }
         splitTokensWithEquality();
 
         if (left.size() == 1 && left.get(0).getType() != Type.VARIABLE
@@ -89,6 +96,58 @@ public class Parser {
 
         if (right.size() == 1 && right.get(0).getType() == Type.OPERATOR) {
             throw new InvalidFormException("Incorrect expression: " + right.get(0).getToken());
+        }
+
+        if (right.get(0).getType() == Type.OPERATOR && ((Operator)right.get(0)).getMark() != Mark.OPEN_PARENTHESIS
+                && ((Operator)right.get(0)).getMark() != Mark.MINUS) {
+            throw new InvalidFormException("Incorrect expression: " + right.get(0).getToken());
+        }
+
+        if (right.get(right.size() - 1).getType() == Type.OPERATOR
+                && ((Operator)right.get(right.size() - 1)).getMark() != Mark.CLOSE_PARENTHESIS) {
+            throw new InvalidFormException("Incorrect expression: " + right.get(right.size() - 1).getToken());
+        }
+
+        for (int i = 0; i < right.size(); i++) {
+            if (i + 1 < right.size()) {
+                checkTokensForValidity(right.get(i), right.get(i + 1));
+            }
+        }
+    }
+
+    private void checkTokensForValidity(Token t1, Token t2) {
+        if (t1.getType() == Type.OPERATOR) {
+            if (((Operator)t1).getMark() == Mark.OPEN_PARENTHESIS && t2.getType() == Type.OPERATOR
+                    && ((Operator)t2).getMark() != Mark.OPEN_PARENTHESIS
+                    && ((Operator)t2).getMark() != Mark.MINUS) {
+                throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
+            }
+
+            if (((Operator)t1).getMark() == Mark.CLOSE_PARENTHESIS && ((t2.getType() == Type.OPERATOR
+                    && ((Operator)t2).getMark() == Mark.OPEN_PARENTHESIS)
+                    || t2.getType() == Type.NUMBER || t2.getType() == Type.VARIABLE
+                    || t2.getType() == Type.FUNCTION)) {
+                throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
+            }
+
+            if (((Operator)t1).getMark() != Mark.OPEN_PARENTHESIS && ((Operator)t1).getMark() != Mark.CLOSE_PARENTHESIS
+                    && t2.getType() == Type.OPERATOR && ((Operator)t2).getMark() != Mark.OPEN_PARENTHESIS) {
+                throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
+            }
+        }
+
+        if (t1.getType() == Type.NUMBER) {
+            if (t2.getType() == Type.NUMBER || (t2.getType() == Type.OPERATOR
+                    && ((Operator)t2).getMark() == Mark.OPEN_PARENTHESIS)) {
+                throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
+            }
+        }
+
+        if (t1.getType() == Type.VARIABLE || t1.getType() == Type.FUNCTION) {
+            if (t2.getType() == Type.NUMBER || t2.getType() == Type.VARIABLE || t2.getType() == Type.FUNCTION
+                    || (t2.getType() == Type.OPERATOR && ((Operator)t2).getMark() == Mark.OPEN_PARENTHESIS)) {
+                throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
+            }
         }
     }
 

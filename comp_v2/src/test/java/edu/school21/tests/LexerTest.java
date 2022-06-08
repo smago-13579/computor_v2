@@ -5,9 +5,8 @@ import edu.school21.analyze.Parser;
 import edu.school21.data.Data;
 import edu.school21.exceptions.InvalidFormException;
 import edu.school21.exceptions.InvalidSymbolException;
+import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
-import edu.school21.tokens.Operator;
-import edu.school21.tokens.Token;
 import edu.school21.types.Type;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -62,7 +61,10 @@ public class LexerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"y = ", "varA = ", "= 10", "y = 10 = 2", "varA 10",
-        "y = (10 + 2", "(y + 2 = ) 10", "y = ) 10", "varA = ) ( 10", "10= y"})
+        "y = (10 + 2", "(y + 2 = ) 10", "y = ) 10", "varA = ) ( 10", "10= y",
+            "f(x) = () + 10", "f(x) = (x + 10)1 + 10", "f(x) = (+ 10) + 10",
+            "f(x) = (x + 10) (1 + 10)", "f(x) = (x + 10)x + 10", "y = 10 10", "y = 2* + 10",
+            "y = x x", "y = f(1) f(2)"})
     public void errorCheckParser(String form) {
         lexer.processing(form);
         assertThrows(InvalidFormException.class, () -> parser.processing(lexer.getTokens()));
@@ -85,15 +87,22 @@ public class LexerTest {
         list.forEach(t -> System.out.println(t.getToken()));
 
         list.addAll(1, Arrays.asList(new Number(11), new Number(12), new Number(13)));
+        list.add(1, new Operator('*'));
         System.out.println("---------------");
         list.forEach(t -> System.out.println(t.getToken()));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"f(x) = (2 *x ^2+ 5*x^2 + 3*x + 10 - 5 - x)"})
+    @ValueSource(strings = {"f(x) = (2 *x ^2+ 5*x^2 + 3*x + 10 - 5 - x)",
+            "y(x) = (x^3 + 10)", "y(x) = (2 * x^5 - x^5 + 5)", "z(x) = (2 * x^6 - 3 * x ^ 6 + x^ 6 + 11)",
+            "zz(x) = (x^2 - x + 3 * x^2 + 10 - i ^2 - 2*i)", "zz(x) = (10x^2 + 8 i - 11)", "varA = 3",
+            "varB = (1 + y(varA))"})
     public void assignmentTestA(String form) {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
-        System.out.println((Data.getInstance().getFunctions().get(0).getValueToString()));
+        List<Function> functions = Data.getInstance().getFunctions();
+        System.out.println(functions.get(functions.size() - 1).getValueToString());
+//        List<Variable> variables = Data.getInstance().getVariables();
+//        System.out.println(variables.get(variables.size() - 1).getValueToString());
     }
 }

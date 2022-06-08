@@ -23,7 +23,6 @@ public class Lexer {
         this.form = form;
         checkForm();
         createTokens();
-        Token.printTokens(tokens);
     }
 
     private void createTokens() {

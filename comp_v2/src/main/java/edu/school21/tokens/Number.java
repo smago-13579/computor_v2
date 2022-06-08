@@ -8,9 +8,29 @@ public class Number extends Token {
 
     @Override
     public String getToken() {
-        if (this.num % 1 == 0) {
-            return String.valueOf((long)this.num);
+        StringBuilder value = new StringBuilder();
+
+        if (this.num < 0) {
+            value.append(" - ");
         }
-        return String.valueOf(this.num);
+
+        if (this.num % 1 == 0) {
+            return value.append(abs((long)this.num)).toString();
+        }
+        return value.append(abs(this.num)).toString();
+    }
+
+    private float abs(float f) {
+        if (f < 0) {
+            return -f;
+        }
+        return f;
+    }
+
+    private long abs(long l) {
+        if (l < 0) {
+            return -l;
+        }
+        return l;
     }
 }

@@ -34,11 +34,15 @@ public class Member extends Token {
     public String getToken() {
         StringBuilder value = new StringBuilder();
 
-        if (this.num != 0) {
+        if (this.num < 0) {
+            value.append(" - ");
+        }
+
+        if (abs(this.num) != 1) {
             if (this.num % 1 == 0) {
-                value.append((long) this.num);
+                value.append(abs((long) this.num));
             } else {
-                value.append(this.num);
+                value.append(abs(this.num));
             }
         }
         value.append(this.name);
@@ -47,5 +51,19 @@ public class Member extends Token {
             value.append("^" + this.power);
         }
         return value.toString();
+    }
+
+    private float abs(float f) {
+        if (f < 0) {
+            return -f;
+        }
+        return f;
+    }
+
+    private long abs(long l) {
+        if (l < 0) {
+            return -l;
+        }
+        return l;
     }
 }
