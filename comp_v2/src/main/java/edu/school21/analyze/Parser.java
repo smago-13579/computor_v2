@@ -49,6 +49,10 @@ public class Parser {
             throw new InvalidFormException("Incorrect expression: " + Token.getTokens(tokens));
         }
 
+        if (left.get(0).getType() == Type.MEMBER) {
+            throw new InvalidFormException("Can't assign to variable: " + left.get(0).getToken());
+        }
+
         if (left.get(0).getType() == Type.FUNCTION) {
             for (char c : ((Function) left.get(0)).getMemberName().toCharArray()) {
                 if ((c < 65 || c > 90) && (c < 97 || c > 122)) {

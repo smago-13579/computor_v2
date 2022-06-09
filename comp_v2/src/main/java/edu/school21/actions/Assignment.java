@@ -60,13 +60,12 @@ public class Assignment {
                     value.forEach(token -> {
                         if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
                             nValue.addAll(MathUtils.powerAndCalculate(var.get().getValue(), token));
+                        } else {
+                            nValue.add(token);
                         }
-                        nValue.add(token);
                     });
                     value = nValue;
-                    //TODO calculate this part
                 }
-                //TODO varB = f(varA) + 10;
                 newRight.add(new Operator('('));
                 newRight.addAll(value);
                 newRight.add(new Operator(')'));
@@ -76,10 +75,22 @@ public class Assignment {
         });
         if (left.get(0).getType() == Type.VARIABLE) {
             assignToVariable((Variable)left.get(0), newRight);
+
+            data.getVariables().forEach(v -> {
+                if (v.getToken().equalsIgnoreCase(left.get(0).getToken())) {
+                    System.out.println(v.getValueToString());
+                }
+            });
         }
 
         if (left.get(0).getType() == Type.FUNCTION) {
             assignToFunction((Function)left.get(0), newRight);
+
+            data.getFunctions().forEach(f -> {
+                if (f.getName().equalsIgnoreCase(((Function)left.get(0)).getName())) {
+                    System.out.println(f.getValueToString());
+                }
+            });
         }
     }
 

@@ -61,7 +61,7 @@ public class LexerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"y = ", "varA = ", "= 10", "y = 10 = 2", "varA 10",
-        "y = (10 + 2", "(y + 2 = ) 10", "y = ) 10", "varA = ) ( 10", "10= y",
+            "y = (10 + 2", "(y + 2 = ) 10", "y = ) 10", "varA = ) ( 10", "10= y",
             "f(x) = () + 10", "f(x) = (x + 10)1 + 10", "f(x) = (+ 10) + 10",
             "f(x) = (x + 10) (1 + 10)", "f(x) = (x + 10)x + 10", "y = 10 10", "y = 2* + 10",
             "y = x x", "y = f(1) f(2)"})
@@ -79,30 +79,51 @@ public class LexerTest {
         list.add(new Number(3));
         list.add(new Operator(')'));
 
-        list.forEach(t -> System.out.println(t.getToken()));
-        for (Object t : list.subList(1, 4).toArray()) {
-            list.remove(t);
+        list.forEach(t -> System.out.print(t.getToken() + " "));
+        System.out.println();
+        List<Token> slub = list.subList(1, 4);
+
+        while (!slub.isEmpty()) {
+            slub.remove(slub.size() - 1);
         }
         System.out.println("---------------");
-        list.forEach(t -> System.out.println(t.getToken()));
+        list.forEach(t -> System.out.print(t.getToken() + " "));
+        System.out.println();
+
+        slub.add(new Number(5));
+        slub.add(new Number(6));
+        System.out.println("---------------");
+        list.forEach(t -> System.out.print(t.getToken() + " "));
+        System.out.println();
 
         list.addAll(1, Arrays.asList(new Number(11), new Number(12), new Number(13)));
         list.add(1, new Operator('*'));
         System.out.println("---------------");
-        list.forEach(t -> System.out.println(t.getToken()));
+        list.forEach(t -> System.out.print(t.getToken() + " "));
+        System.out.println();
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"f(x) = (2 *x ^2+ 5*x^2 + 3*x + 10 - 5 - x)",
             "y(x) = (x^3 + 10)", "y(x) = (2 * x^5 - x^5 + 5)", "z(x) = (2 * x^6 - 3 * x ^ 6 + x^ 6 + 11)",
-            "zz(x) = (x^2 - x + 3 * x^2 + 10 - i ^2 - 2*i)", "zz(x) = (10x^2 + 8 i - 11)", "varA = 3",
-            "varB = (1 + y(varA))"})
-    public void assignmentTestA(String form) {
+            "f(x) = (x^2 - x + 3 * x^2 + 10 - i ^2 - 2*i)", "f(x) = (10x^2 + 8 i - 11)"})
+    public void assignmentFunctionTestA(String form) {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
-        List<Function> functions = Data.getInstance().getFunctions();
-        System.out.println(functions.get(functions.size() - 1).getValueToString());
-//        List<Variable> variables = Data.getInstance().getVariables();
-//        System.out.println(variables.get(variables.size() - 1).getValueToString());
+        String funcName = form.split("\\(")[0];
+        Function function = Data.getInstance().getFunctions().stream()
+                .filter(f -> f.getName().equalsIgnoreCase(funcName)).findAny().get();
+        System.out.println(function.getValueToString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"f(x) = x ^ 2 + 1", "varA = 3", "varB = (1 + f(varA))"})
+    public void assignmentVariableTestA(String form) {
+        lexer.processing(form);
+        parser.processing(lexer.getTokens());
+//        String varName = form.split(" *=")[0];
+//        Variable variable = Data.getInstance().getVariables().stream()
+//                .filter(v -> v.getToken().equalsIgnoreCase(varName)).findAny().get();
+//        System.out.println(variable.getValueToString());
     }
 }
