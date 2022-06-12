@@ -2,7 +2,6 @@ package edu.school21.tests;
 
 import edu.school21.analyze.Lexer;
 import edu.school21.analyze.Parser;
-import edu.school21.data.Data;
 import edu.school21.exceptions.InvalidFormException;
 import edu.school21.exceptions.InvalidSymbolException;
 import edu.school21.tokens.*;
@@ -83,16 +82,17 @@ public class LexerTest {
         System.out.println();
         List<Token> slub = list.subList(1, 4);
 
-        while (!slub.isEmpty()) {
-            slub.remove(slub.size() - 1);
-        }
+//        while (!slub.isEmpty()) {
+//            slub.remove(slub.size() - 1);
+//        }
+        slub.removeAll(slub);
         System.out.println("---------------");
         list.forEach(t -> System.out.print(t.getToken() + " "));
         System.out.println();
 
+        System.out.println("---------------");
         slub.add(new Number(5));
         slub.add(new Number(6));
-        System.out.println("---------------");
         list.forEach(t -> System.out.print(t.getToken() + " "));
         System.out.println();
 
@@ -110,20 +110,14 @@ public class LexerTest {
     public void assignmentFunctionTestA(String form) {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
-        String funcName = form.split("\\(")[0];
-        Function function = Data.getInstance().getFunctions().stream()
-                .filter(f -> f.getName().equalsIgnoreCase(funcName)).findAny().get();
-        System.out.println(function.getValueToString());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"f(x) = x ^ 2 + 1", "varA = 3", "varB = (1 + f(varA))"})
-    public void assignmentVariableTestA(String form) {
+    @ValueSource(strings = {"f(x) = x ^ 2 + 1", "varA = 3", "varB = (1 + f(varA))",
+            "f(x) = 2x^2 + x * 10 - 125 + 2/i*x + 25 + 2^x + 200 + 10x", "varC = f(1)",
+            "z(x) = 4 * i * x", "varC = z(1)"})
+    public void assignmentTestA(String form) {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
-//        String varName = form.split(" *=")[0];
-//        Variable variable = Data.getInstance().getVariables().stream()
-//                .filter(v -> v.getToken().equalsIgnoreCase(varName)).findAny().get();
-//        System.out.println(variable.getValueToString());
     }
 }

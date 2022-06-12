@@ -42,7 +42,7 @@ public class Assignment {
                     value = value.stream().map(token -> {
                         if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
                             Member member = (Member)token;
-                            float f = MathUtils.power(num, member.getPower()) * member.getNum();
+                            float f = Power.power(num, member.getPower()) * member.getNum();
                             return new Number(f);
                         }
                         return token;
@@ -59,7 +59,7 @@ public class Assignment {
                     }
                     value.forEach(token -> {
                         if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
-                            nValue.addAll(MathUtils.powerAndCalculate(var.get().getValue(), token));
+                            nValue.addAll(MathUtils.injectValueAndCalculate(var.get().getValue(), token));
                         } else {
                             nValue.add(token);
                         }

@@ -159,7 +159,7 @@ public class Parser {
         int count = 0;
 
         if (tokens.stream().filter(t -> t.getType() == Type.EQUALITY).count() != 1) {
-            throw new InvalidFormException("Incorrect equality - \"=\" ");
+            throw new InvalidFormException("Incorrect expression: " + Token.getTokens(tokens));
         }
         List<Token> operators = tokens.stream().filter(t ->
                 (t.getType() == Type.EQUALITY || t.getType() == Type.OPERATOR)).collect(Collectors.toList());

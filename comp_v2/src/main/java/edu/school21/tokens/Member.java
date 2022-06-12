@@ -18,6 +18,14 @@ public class Member extends Token {
         }
     }
 
+    public Member(Member member) {
+        this.name = member.name;
+        this.type = Type.MEMBER;
+        this.power = member.power;
+        this.num = member.num;
+        this.isImaginary = member.isImaginary;
+    }
+
     public boolean isImaginary() {
         return isImaginary;
     }

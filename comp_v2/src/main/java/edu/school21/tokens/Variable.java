@@ -27,7 +27,8 @@ public class Variable extends Token {
         for (int i = 0; i < value.size(); i++) {
             builder.append(value.get(i).getToken());
 
-            if (i + 1 < value.size() && value.get(i + 1).getNum() >= 0) {
+            if (i + 1 < value.size() && value.get(i).getType() != Type.OPERATOR
+                    && value.get(i + 1).getType() != Type.OPERATOR && value.get(i + 1).getNum() >= 0) {
                 builder.append(" + ");
             }
         }

@@ -34,6 +34,6 @@ public class Operator extends Token {
 
     @Override
     public String getToken() {
-        return this.mark.toString();
+        return " " + this.mark + " ";
     }
 }
