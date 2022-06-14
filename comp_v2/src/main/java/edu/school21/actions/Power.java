@@ -29,7 +29,7 @@ public class Power {
             tokens.remove(i + 1);
             tokens.remove(i);
         }
-        tokens = MathUtils.simplifyImaginary(tokens);
+        tokens = MathUtils.simplifyNumbers(tokens);
         return tokens;
     }
 

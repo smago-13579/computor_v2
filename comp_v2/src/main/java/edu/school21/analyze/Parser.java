@@ -49,6 +49,7 @@ public class Parser {
             throw new InvalidFormException("Incorrect expression: " + Token.getTokens(tokens));
         }
 
+        //TODO is it possible?
         if (left.get(0).getType() == Type.MEMBER) {
             throw new InvalidFormException("Can't assign to variable: " + left.get(0).getToken());
         }
