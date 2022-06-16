@@ -1,5 +1,6 @@
 package edu.school21.tokens;
 
+import edu.school21.types.Mark;
 import edu.school21.types.Type;
 
 import java.util.List;
@@ -28,8 +29,10 @@ public class Variable extends Token {
             builder.append(value.get(i).getToken());
 
             if (i + 1 < value.size() && value.get(i).getType() != Type.OPERATOR
-                    && value.get(i + 1).getType() != Type.OPERATOR && value.get(i + 1).getNum() >= 0) {
-                builder.append(" + ");
+                    && (value.get(i + 1).getType() != Type.OPERATOR
+                    || ((Operator)value.get(i + 1)).getMark() == Mark.OPEN_PARENTHESIS)
+                    && value.get(i + 1).getNum() >= 0) {
+                builder.append("+ ");
             }
         }
         return builder.toString();

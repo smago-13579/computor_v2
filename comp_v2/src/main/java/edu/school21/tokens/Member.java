@@ -43,7 +43,7 @@ public class Member extends Token {
         StringBuilder value = new StringBuilder();
 
         if (this.num < 0) {
-            value.append(" - ");
+            value.append("- ");
         }
 
         if (abs(this.num) != 1) {
@@ -58,6 +58,7 @@ public class Member extends Token {
         if (this.power > 1) {
             value.append("^" + this.power);
         }
+        value.append(" ");
         return value.toString();
     }
 

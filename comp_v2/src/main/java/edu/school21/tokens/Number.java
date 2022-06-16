@@ -11,13 +11,13 @@ public class Number extends Token {
         StringBuilder value = new StringBuilder();
 
         if (this.num < 0) {
-            value.append(" - ");
+            value.append("- ");
         }
 
         if (this.num % 1 == 0) {
-            return value.append(abs((long)this.num)).toString();
+            return value.append(abs((long)this.num) + " ").toString();
         }
-        return value.append(abs(this.num)).toString();
+        return value.append(abs(this.num) + " ").toString();
     }
 
     private float abs(float f) {

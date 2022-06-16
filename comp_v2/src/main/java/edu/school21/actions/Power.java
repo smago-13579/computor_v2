@@ -61,7 +61,7 @@ public class Power {
         while (power-- > 1) {
             for (int i = 0; i < value.size(); i++) {
                 for (int j = 0; j < result.size(); j++) {
-                    tmp.add(MathUtils.multiply(result.get(j), value.get(i)));
+                    tmp.add(Multiply.multiply(result.get(j), value.get(i)));
                 }
             }
             result = MathUtils.addition(tmp);
