@@ -109,6 +109,20 @@ public class Parenthesis {
             return openParenthesis(tokens, first, first + tmp.size() + 1);
         }
 
+        if (bef != null && bef.getType() == Type.OPERATOR && ((Operator) bef).getMark() == Mark.DIVIDE
+                && tokens.get(first - 2).getType() == Type.OPERATOR) {
+            int close = first - 2;
+            int open = findOpenParenthesis(tokens, close - 1);
+            Token tmp = Divide.calculate(tokens.subList(open + 1, close), tokens.subList(first + 1, last));
+
+            if (tmp != null) {
+                List<Token> subList = tokens.subList(open, last + 1);
+                subList.removeAll(subList);
+                subList.add(tmp);
+                return true;
+            }
+        }
+
         if (aft != null && aft.getType() == Type.OPERATOR
                 && (((Operator) aft).getMark() == Mark.MULTIPLY || ((Operator) aft).getMark() == Mark.DIVIDE)
                 && tokens.subList(first + 1, last).stream().noneMatch(t -> t.getType() == Type.OPERATOR)
@@ -132,19 +146,32 @@ public class Parenthesis {
         }
 
         if (bef != null && bef.getType() == Type.OPERATOR && ((Operator) bef).getMark() == Mark.MULTIPLY
-                && tokens.subList(first + 1, last).stream().noneMatch(t -> t.getType() == Type.OPERATOR)
-                && tokens.get(first - 2).getType() != Type.OPERATOR) {
-            List<Token> tmp = Multiply.calculate(tokens.subList(first + 1, last), tokens.get(first - 2));
+                && tokens.subList(first + 1, last).stream().noneMatch(t -> t.getType() == Type.OPERATOR)) {
+            if (tokens.get(first - 2).getType() != Type.OPERATOR) {
+                List<Token> tmp = Multiply.calculate(tokens.subList(first + 1, last), tokens.get(first - 2));
 
-            if (tmp != null) {
-                List<Token> subList = tokens.subList(first + 1, last);
-                subList.removeAll(subList);
-                subList.addAll(tmp);
-                tokens.remove(bef);
-                tokens.remove(first - 2);
-                return openParenthesis(tokens, first - 2, first + tmp.size() - 1);
+                if (tmp != null) {
+                    List<Token> subList = tokens.subList(first + 1, last);
+                    subList.removeAll(subList);
+                    subList.addAll(tmp);
+                    tokens.remove(bef);
+                    tokens.remove(first - 2);
+                    return openParenthesis(tokens, first - 2, first + tmp.size() - 1);
+                }
+            } else {
+                int close = first - 2;
+                int open = findOpenParenthesis(tokens, close - 1);
+                List<Token> tmp = Multiply.calculate(tokens.subList(open + 1, close), tokens.subList(first + 1, last));
+
+                if (tmp != null) {
+                    List<Token> subList = tokens.subList(open + 1, last);
+                    subList.removeAll(subList);
+                    subList.addAll(tmp);
+                    return openParenthesis(tokens, open, open + tmp.size() + 1);
+                }
             }
         }
+
         return false;
     }
 

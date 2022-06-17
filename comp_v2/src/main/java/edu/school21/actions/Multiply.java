@@ -3,6 +3,7 @@ package edu.school21.actions;
 import edu.school21.exceptions.UnknownFormatException;
 import edu.school21.tokens.Member;
 import edu.school21.tokens.Number;
+import edu.school21.tokens.Operator;
 import edu.school21.tokens.Token;
 import edu.school21.types.Type;
 
@@ -10,6 +11,21 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Multiply {
+    public static List<Token> calculate(List<Token> left, List<Token> right) {
+        List<Token> tokens = new LinkedList<>();
+
+        for (Token t : left) {
+            List<Token> tmp = calculate(right, t);
+
+            if (tmp == null) {
+                return null;
+            }
+            tokens.addAll(tmp);
+        }
+        tokens = MathUtils.addition(tokens);
+        return tokens;
+    }
+
     public static List<Token> calculate(List<Token> tokens, Token token) {
         List<Token> tmp = new LinkedList<>();
 

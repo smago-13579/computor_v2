@@ -29,8 +29,8 @@ public class MathUtils {
                 last = i--;
                 first = Parenthesis.findOpenParenthesis(tokens, i);
                 tokens = calculateSegment(tokens, first, last);
-                i = first + 1;
-                last = Parenthesis.findCloseParenthesis(tokens, i);
+                last = Parenthesis.findCloseParenthesis(tokens, first + 1);
+                i = first;
 
                 if (!Parenthesis.openParenthesis(tokens, first, last)) {
                     i = last;

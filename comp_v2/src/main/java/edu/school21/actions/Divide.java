@@ -10,6 +10,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Divide {
+    public static Token calculate(List<Token> left, List<Token> right) {
+        if (left.size() != right.size()) {
+            return null;
+        }
+
+        for (int i = 0; i < left.size(); i++) {
+            if (!left.get(i).getToken().equalsIgnoreCase(right.get(i).getToken())) {
+                return null;
+            }
+        }
+        return new Number(1f);
+    }
+
     public static List<Token> calculate(List<Token> tokens, Token token) {
         List<Token> tmp = new LinkedList<>();
 
