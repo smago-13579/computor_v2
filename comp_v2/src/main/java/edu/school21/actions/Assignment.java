@@ -28,9 +28,9 @@ public class Assignment {
             if (t.getType() == Type.VARIABLE) {
                 Variable var = data.getVariables().stream()
                         .filter(v -> v.getToken().equalsIgnoreCase(t.getToken())).findAny().get();
-                newRight.add(new Operator('('));
+                newRight.add(new Operator("("));
                 newRight.addAll(var.getValue());
-                newRight.add(new Operator(')'));
+                newRight.add(new Operator(")"));
             } else if (t.getType() == Type.FUNCTION) {
                 Function func = data.getFunctions().stream()
                         .filter(f -> f.getName().equalsIgnoreCase(((Function)t).getName())).findAny().get();
@@ -66,9 +66,9 @@ public class Assignment {
                     });
                     value = nValue;
                 }
-                newRight.add(new Operator('('));
+                newRight.add(new Operator("("));
                 newRight.addAll(value);
-                newRight.add(new Operator(')'));
+                newRight.add(new Operator(")"));
             } else {
                 newRight.add(t);
             }

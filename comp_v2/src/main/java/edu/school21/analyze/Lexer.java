@@ -39,14 +39,21 @@ public class Lexer {
             if ("+-*/%^()=".indexOf(c) != -1) {
                 if (c == '=') {
                     tokens.add(new Equality());
+                } else if (c == '*' && i + 1 < form.length() && form.charAt(i + 1) == '*') {
+                    tokens.add(new Operator("**"));
                 } else {
-                    tokens.add(new Operator(c));
+                    tokens.add(new Operator(Character.toString(c)));
                 }
                 continue;
             }
 
             if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122)) {
                 i = parseVar(i);
+                continue;
+            }
+
+            if (c == '[') {
+                i = parseMatrix(i + 1);
                 continue;
             }
 
@@ -58,6 +65,41 @@ public class Lexer {
                 throw new InvalidFormException("Invalid form: \".\"");
             }
         }
+    }
+
+    private int parseMatrix(int i) {
+        while (i < form.length() && form.charAt(i) == ' ') {
+            i++;
+        }
+
+        if (i == form.length() || form.charAt(i) != '[') {
+            throw new InvalidFormException("Invalid matrix: missing opening bracket \"[\"");
+        }
+        int start = i;
+        int end = form.length();
+
+        while (i < form.length()) {
+            if (form.charAt(i) == ']') {
+                end = ++i;
+
+                while (i < form.length() && form.charAt(i) == ' ') {
+                    i++;
+                }
+
+                if (i < form.length() && form.charAt(i) == ']') {
+                    break;
+                }
+            } else {
+                i++;
+            }
+        }
+
+        if (i == form.length()) {
+            throw new InvalidFormException("Invalid matrix: missing closing bracket \"]\"");
+        }
+        tokens.add(new Matrix(form.substring(start, end)));
+
+        return i;
     }
 
     private int parseVar(int i) {

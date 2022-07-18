@@ -19,6 +19,12 @@ public enum Mark {
             return "*";
         }
     },
+    MATRIX_MULTIPLY {
+        @Override
+        public String toString() {
+            return "**";
+        }
+    },
     DIVIDE {
         @Override
         public String toString() {

@@ -1,10 +1,8 @@
 package edu.school21.actions;
 
 import edu.school21.exceptions.UnknownFormatException;
-import edu.school21.tokens.Member;
+import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
-import edu.school21.tokens.Operator;
-import edu.school21.tokens.Token;
 import edu.school21.types.Type;
 
 import java.util.LinkedList;
@@ -33,7 +31,7 @@ public class Multiply {
             return null;
         }
 
-        if (token.getType() != Type.NUMBER) {
+        if (token.getType() != Type.NUMBER && !tokens.stream().allMatch(t -> t.getType() == Type.NUMBER)) {
             if (tokens.stream().filter(t -> t.getType() == Type.MEMBER).anyMatch(t -> ((Member)t).isImaginary())
                     && tokens.stream().filter(t -> t.getType() == Type.MEMBER).anyMatch(t -> !((Member)t).isImaginary())) {
                 return null;
@@ -55,6 +53,17 @@ public class Multiply {
     public static Token multiply(Token t1, Token t2) {
         if (t1.getType() == Type.NUMBER && t2.getType() == Type.NUMBER) {
             return new Number(t1.getNum() * t2.getNum());
+        }
+
+        if (t1.getType() == Type.MATRIX || t2.getType() == Type.MATRIX) {
+            if (t1.getType() == Type.MATRIX && t2.getType() == Type.MATRIX) {
+                return multiplyMatrix((Matrix) t1, (Matrix) t2);
+            }
+
+            if (t1.getType() == Type.MATRIX) {
+                List<List<Integer>> matrix = ((Matrix) t1).getMatrix();
+
+            }
         }
 
         if (t1.getType() == Type.NUMBER) {
@@ -85,4 +94,7 @@ public class Multiply {
                 + " and " + t2.getToken());
     }
 
+    public static Matrix multiplyMatrix(Matrix m1, Matrix m2) {
+
+    }
 }

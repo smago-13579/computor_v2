@@ -89,7 +89,7 @@ public class Parser {
             if (tokens.get(i).getType() == Type.NUMBER && i + 1 < tokens.size()
                     && (tokens.get(i + 1).getType() == Type.VARIABLE
                     || tokens.get(i + 1).getType() == Type.FUNCTION)) {
-                tokens.add(i + 1, new Operator('*'));
+                tokens.add(i + 1, new Operator("*"));
             }
         }
         splitTokensWithEquality();
@@ -131,7 +131,7 @@ public class Parser {
             if (((Operator)t1).getMark() == Mark.CLOSE_PARENTHESIS && ((t2.getType() == Type.OPERATOR
                     && ((Operator)t2).getMark() == Mark.OPEN_PARENTHESIS)
                     || t2.getType() == Type.NUMBER || t2.getType() == Type.VARIABLE
-                    || t2.getType() == Type.FUNCTION)) {
+                    || t2.getType() == Type.FUNCTION || t2.getType() == Type.MATRIX)) {
                 throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
             }
 
@@ -142,14 +142,15 @@ public class Parser {
         }
 
         if (t1.getType() == Type.NUMBER) {
-            if (t2.getType() == Type.NUMBER || (t2.getType() == Type.OPERATOR
-                    && ((Operator)t2).getMark() == Mark.OPEN_PARENTHESIS)) {
+            if (t2.getType() == Type.NUMBER || t2.getType() == Type.MATRIX
+                    || (t2.getType() == Type.OPERATOR && ((Operator)t2).getMark() == Mark.OPEN_PARENTHESIS)) {
                 throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
             }
         }
 
-        if (t1.getType() == Type.VARIABLE || t1.getType() == Type.FUNCTION) {
-            if (t2.getType() == Type.NUMBER || t2.getType() == Type.VARIABLE || t2.getType() == Type.FUNCTION
+        if (t1.getType() == Type.VARIABLE || t1.getType() == Type.FUNCTION || t1.getType() == Type.MATRIX) {
+            if (t2.getType() == Type.NUMBER || t2.getType() == Type.VARIABLE
+                    || t2.getType() == Type.FUNCTION || t2.getType() == Type.MATRIX
                     || (t2.getType() == Type.OPERATOR && ((Operator)t2).getMark() == Mark.OPEN_PARENTHESIS)) {
                 throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
             }

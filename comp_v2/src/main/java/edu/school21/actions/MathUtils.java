@@ -260,7 +260,8 @@ public class MathUtils {
                 && tokens.get(i - 1).getType() == Type.MEMBER
                 && tokens.get(i + 1).getType() == Type.MEMBER
                 && (((Member)tokens.get(i - 1)).isImaginary() != ((Member)tokens.get(i + 1)).isImaginary()
-                || ((Member)tokens.get(i - 1)).getPower() < ((Member)tokens.get(i + 1)).getPower())) {
+                || (((Operator) token).getMark() == Mark.DIVIDE
+                && ((Member)tokens.get(i - 1)).getPower() < ((Member)tokens.get(i + 1)).getPower()))) {
             return false;
         }
 

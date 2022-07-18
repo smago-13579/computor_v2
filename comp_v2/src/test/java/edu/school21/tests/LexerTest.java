@@ -72,11 +72,11 @@ public class LexerTest {
     @Test
     public void extLst() {
         List<Token> list = new LinkedList<>();
-        list.add(new Operator('('));
+        list.add(new Operator("("));
         list.add(new Number(1));
         list.add(new Number(2));
         list.add(new Number(3));
-        list.add(new Operator(')'));
+        list.add(new Operator(")"));
 
         list.forEach(t -> System.out.print(t.getToken() + " "));
         System.out.println();
@@ -97,7 +97,7 @@ public class LexerTest {
         System.out.println();
 
         list.addAll(1, Arrays.asList(new Number(11), new Number(12), new Number(13)));
-        list.add(1, new Operator('*'));
+        list.add(1, new Operator("*"));
         System.out.println("---------------");
         list.forEach(t -> System.out.print(t.getToken() + " "));
         System.out.println();
@@ -136,6 +136,17 @@ public class LexerTest {
             "f(x) = (x^2 - x - i + 1 + 3) / (2x^2 + 5x - i + 4 - 6X - x^2) * 2.5",
             "f(x) = (x + x /i * 3 - 3) / (x + x / i * 3 -3) * 5"})
     public void divideTestA(String form) {
+        lexer.processing(form);
+        parser.processing(lexer.getTokens());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"f(x) = (x + i) / (x ^ 2 + x + 1) / (x ^ 2 + x + 1)",
+            "f(x) = (x + i) * (x ^ 2 + x + 1) / (x ^ 2 + x + 1)",
+            "f(x) = (x + i) ^ (x ^ 2 + x + 1) / (x ^ 2 + x + 1)",
+            "f(x) = (x + i) * (i - 1) * (i + 1)", "f(x) = (x + i) / (i - 1) * (i + 1)",
+            "f(x) = (x + i) ^ (i - 1) * (i + 1)"})
+    public void divideTestB(String form) {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
     }
