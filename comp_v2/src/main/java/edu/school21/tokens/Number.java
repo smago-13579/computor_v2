@@ -6,6 +6,10 @@ public class Number extends Token {
         super(f);
     }
 
+    public Number(Number n) {
+        super(n.getNum());
+    }
+
     @Override
     public String getToken() {
         StringBuilder value = new StringBuilder();

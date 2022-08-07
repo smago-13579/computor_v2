@@ -41,6 +41,7 @@ public class Lexer {
                     tokens.add(new Equality());
                 } else if (c == '*' && i + 1 < form.length() && form.charAt(i + 1) == '*') {
                     tokens.add(new Operator("**"));
+                    i++;
                 } else {
                     tokens.add(new Operator(Character.toString(c)));
                 }

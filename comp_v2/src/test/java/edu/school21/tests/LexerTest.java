@@ -7,6 +7,8 @@ import edu.school21.exceptions.InvalidSymbolException;
 import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
 import edu.school21.types.Type;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -21,6 +23,14 @@ public class LexerTest {
     Lexer lexer = Lexer.getInstance();
     Parser parser = Parser.getInstance();
 
+    @BeforeAll
+    static void createVars() {
+        Lexer.getInstance().processing("varA = [[1, 1, 1] ; [1, 1, 1];[1,1,1]]");
+        Parser.getInstance().processing(Lexer.getInstance().getTokens());
+        Lexer.getInstance().processing("varB = [[2,2,2];[2,2,2];[2,2,2]]");
+        Parser.getInstance().processing(Lexer.getInstance().getTokens());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"varA = 1", "y = 0", "x = 1"})
     public void simpleLexerTestA(String form) {
@@ -30,7 +40,7 @@ public class LexerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"varA = 1.5 + x", "y = x - 10"})
+    @ValueSource(strings = {"varA = 1.5 + i", "varB = i - 10"})
     public void simpleLexerTestB(String form) {
         lexer.processing(form);
         assertEquals(5, lexer.getTokens().size());
@@ -38,7 +48,7 @@ public class LexerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"f(x) = x + 10", "y(x) = x - 1.5", "varA(z) = x - z"})
+    @ValueSource(strings = {"f(x) = x + 10", "y(x) = x - 1.5", "a(z) = i - z"})
     public void simpleLexerTestC(String form) {
         lexer.processing(form);
         assertEquals(5, lexer.getTokens().size());
@@ -101,6 +111,14 @@ public class LexerTest {
         System.out.println("---------------");
         list.forEach(t -> System.out.print(t.getToken() + " "));
         System.out.println();
+
+        int[] A = new int[2];
+        int[] B = new int[2];
+        A[0] = 10;
+        B[0] = 10;
+        A[1] = 20;
+        B[1] = 20;
+        System.out.println("EQUALS: " + (Arrays.equals(A, B)));
     }
 
     @ParameterizedTest
@@ -147,6 +165,29 @@ public class LexerTest {
             "f(x) = (x + i) * (i - 1) * (i + 1)", "f(x) = (x + i) / (i - 1) * (i + 1)",
             "f(x) = (x + i) ^ (i - 1) * (i + 1)"})
     public void divideTestB(String form) {
+        lexer.processing(form);
+        parser.processing(lexer.getTokens());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"matrix =[[1,2];]", "matrix= [[1];]", "m = [[]]", "m = [;[ 1 ]]",
+            "m = [ [ 1 , 2] ; [2,3];[3]]", "m = [ [2]; [2,3];[3]]", "m = [ [2]; [2];[3];]",
+            "m = [ []; [2];[3]]", "m = [ [2]; [2];[3];]", "m = [ ]", "m=[", "m=[]", "m = [ [2]; [2];[3];]]" })
+    public void errorCheckMatrixA(String form) {
+        assertThrows(InvalidFormException.class, () -> lexer.processing(form));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"varC = varA*varB"})
+    public void errorCheckMatrixB(String form) {
+        lexer.processing(form);
+        assertThrows(InvalidFormException.class, () -> parser.processing(lexer.getTokens()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"varC = varA ** varB", "varD = varB - varA", "varD = varA + varB",
+            "varX = varB * 2", "varY = varX * 2"})
+    public void multiplyMatrixA(String form) {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
     }

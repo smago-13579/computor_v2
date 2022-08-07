@@ -30,6 +30,11 @@ public class Operator extends Token {
         }
     }
 
+    public Operator(Operator o) {
+        this.type = Type.OPERATOR;
+        this.mark = o.getMark();
+    }
+
     public Mark getMark() {
         return mark;
     }

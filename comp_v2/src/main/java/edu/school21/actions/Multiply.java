@@ -1,10 +1,12 @@
 package edu.school21.actions;
 
+import edu.school21.exceptions.InvalidFormException;
 import edu.school21.exceptions.UnknownFormatException;
 import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
 import edu.school21.types.Type;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -60,10 +62,31 @@ public class Multiply {
                 return multiplyMatrix((Matrix) t1, (Matrix) t2);
             }
 
-            if (t1.getType() == Type.MATRIX) {
-                List<List<Integer>> matrix = ((Matrix) t1).getMatrix();
-
+            if ((t1.getType() == Type.MATRIX && t2.getNum() % 1 != 0)
+                    || (t2.getType() == Type.MATRIX && t1.getNum() % 1 != 0)) {
+                throw new InvalidFormException("Matrix can only be multiplied by integer values");
             }
+            List<List<Integer>> newMatrix = new ArrayList<>();
+            List<List<Integer>> matrix;
+            int num;
+
+            if (t1.getType() == Type.MATRIX) {
+                matrix = ((Matrix) t1).getMatrix();
+                num = (int)t2.getNum();
+            } else {
+                matrix = ((Matrix) t2).getMatrix();
+                num = (int)t1.getNum();
+            }
+
+            for (List<Integer> list : matrix) {
+                List<Integer> newList = new ArrayList<>();
+
+                for (Integer i : list) {
+                    newList.add(i * num);
+                }
+                newMatrix.add(newList);
+            }
+            return new Matrix(newMatrix);
         }
 
         if (t1.getType() == Type.NUMBER) {
@@ -95,6 +118,28 @@ public class Multiply {
     }
 
     public static Matrix multiplyMatrix(Matrix m1, Matrix m2) {
+        List<List<Integer>> matrixOne = m1.getMatrix();
+        List<List<Integer>> matrixTwo = m2.getMatrix();
 
+        if (matrixOne.get(0).size() != matrixTwo.size()) {
+            throw new UnknownFormatException("Matrices can't be multiplied. Column and row size are not equal : "
+                    + m1.getToken() + " and " + m2.getToken());
+        }
+        ArrayList<List<Integer>> matrixNew = new ArrayList<>();
+
+        for (List<Integer> listOne : matrixOne) {
+            ArrayList<Integer> listNew = new ArrayList<>();
+
+            for (int j = 0; j < matrixTwo.get(0).size(); j++) {
+                int result = 0;
+
+                for (int k = 0; k < listOne.size(); k++) {
+                    result += listOne.get(k) * matrixTwo.get(k).get(j);
+                }
+                listNew.add(result);
+            }
+            matrixNew.add(listNew);
+        }
+        return new Matrix(matrixNew);
     }
 }

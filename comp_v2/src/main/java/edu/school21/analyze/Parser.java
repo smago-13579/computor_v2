@@ -49,7 +49,6 @@ public class Parser {
             throw new InvalidFormException("Incorrect expression: " + Token.getTokens(tokens));
         }
 
-        //TODO is it possible?
         if (left.get(0).getType() == Type.MEMBER) {
             throw new InvalidFormException("Can't assign to variable: " + left.get(0).getToken());
         }
@@ -139,6 +138,26 @@ public class Parser {
                     && t2.getType() == Type.OPERATOR && ((Operator)t2).getMark() != Mark.OPEN_PARENTHESIS) {
                 throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
             }
+        }
+
+//        if (t2.getType() == Type.OPERATOR && ((Operator)t2).getMark() == Mark.MATRIX_MULTIPLY) {
+//            int index = right.indexOf(t2);
+//            Token tmp = right.get(index + 1);
+//
+//            if (t1.getType() != Type.MATRIX || tmp.getType() != Type.MATRIX) {
+//                throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " "
+//                        + t2.getToken() + " " + tmp.getToken());
+//            }
+//        }
+
+        if (t1.getType() == Type.MATRIX && t2.getType() == Type.OPERATOR && (((Operator)t2).getMark() == Mark.DIVIDE
+                || ((Operator)t2).getMark() == Mark.MODULO)) {
+            throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
+        }
+
+        if (t2.getType() == Type.MATRIX && t1.getType() == Type.OPERATOR && (((Operator)t1).getMark() == Mark.DIVIDE
+                || ((Operator)t1).getMark() == Mark.MODULO)) {
+            throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
         }
 
         if (t1.getType() == Type.NUMBER) {

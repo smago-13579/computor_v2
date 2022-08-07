@@ -91,6 +91,8 @@ public class Power {
             member.setPower(member.getPower() * (int) t2.getNum());
             return member;
         }
+
+        //power matrix
         throw new UnknownFormatException("Unknown format in MathUtils.power() : " + t1.getToken());
     }
 

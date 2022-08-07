@@ -1,14 +1,14 @@
 package edu.school21.actions;
 
 import edu.school21.data.Data;
+import edu.school21.exceptions.InvalidFormException;
 import edu.school21.exceptions.InvalidPowerException;
-import edu.school21.tokens.Member;
+import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
-import edu.school21.tokens.Operator;
-import edu.school21.tokens.Token;
 import edu.school21.types.Mark;
 import edu.school21.types.Type;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -30,11 +30,11 @@ public class MathUtils {
                 first = Parenthesis.findOpenParenthesis(tokens, i);
                 tokens = calculateSegment(tokens, first, last);
                 last = Parenthesis.findCloseParenthesis(tokens, first + 1);
-                i = first;
+                i = 0;
 
                 if (!Parenthesis.openParenthesis(tokens, first, last)) {
                     i = last;
-                }
+                }   // TODO???
             }
         }
         tokens = calculate(tokens);
@@ -55,7 +55,8 @@ public class MathUtils {
         List<Token> tmp = tokens.stream().filter(t -> t.getType() == Type.OPERATOR
                 && (((Operator) t).getMark() == Mark.MULTIPLY
                 || ((Operator) t).getMark() == Mark.DIVIDE
-                || ((Operator) t).getMark() == Mark.MODULO)).collect(Collectors.toList());
+                || ((Operator) t).getMark() == Mark.MODULO
+                || ((Operator) t).getMark() == Mark.MATRIX_MULTIPLY)).collect(Collectors.toList());
 
         for (Token t : tmp) {
             if (isValidAction(tokens, t)) {
@@ -66,6 +67,8 @@ public class MathUtils {
                     token = Multiply.multiply(tokens.get(i - 1), tokens.get(i + 1));
                 } else if (((Operator) t).getMark() == Mark.DIVIDE) {
                     token = Divide.divide(tokens.get(i - 1), tokens.get(i + 1));
+                } else if (((Operator) t).getMark() == Mark.MATRIX_MULTIPLY) {
+                    token = Multiply.multiplyMatrix((Matrix)tokens.get(i - 1), (Matrix)tokens.get(i + 1));
                 } else {
                     token = new Number(tokens.get(i - 1).getNum() % tokens.get(i + 1).getNum());
                 }
@@ -151,11 +154,24 @@ public class MathUtils {
 
     public static List<Token> addition(List<Token> tokens) {
         List<Token> members = new LinkedList<>();
-        List<Token> tmpList = tokens.stream().filter(t -> t.getType() == Type.MEMBER && !((Member)t).isImaginary())
-                .sorted((t1, t2) -> ((Member)t2).getPower() - ((Member)t1).getPower()).collect(Collectors.toList());
+
+        List<Token> tmpList = tokens.stream().filter(t -> t.getType() == Type.MATRIX).collect(Collectors.toList());
 
         for (Token t1 : tmpList) {
             Optional<Token> optToken = members.stream()
+                    .filter(t2 -> Arrays.equals(((Matrix)t1).getSize(), ((Matrix)t2).getSize())).findAny();
+
+            if (optToken.isPresent()) {
+                ((Matrix)optToken.get()).addition(((Matrix)t1).getMatrix());
+            } else {
+                members.add(t1);
+            }
+        }
+        tmpList = tokens.stream().filter(t -> t.getType() == Type.MEMBER && !((Member)t).isImaginary())
+                .sorted((t1, t2) -> ((Member)t2).getPower() - ((Member)t1).getPower()).collect(Collectors.toList());
+
+        for (Token t1 : tmpList) {
+            Optional<Token> optToken = members.stream().filter(t -> t.getType() == Type.MEMBER)
                     .filter(t2 -> ((Member)t2).getPower() == ((Member)t1).getPower()).findAny();
 
             if (optToken.isPresent()) {
@@ -169,7 +185,7 @@ public class MathUtils {
                 .sorted((t1, t2) -> ((Member)t2).getPower() - ((Member)t1).getPower()).collect(Collectors.toList());
 
         for (Token t1 : tmpList) {
-            Optional<Token> optToken = members.stream()
+            Optional<Token> optToken = members.stream().filter(t -> t.getType() == Type.MEMBER)
                     .filter(t2 -> ((Member)t2).getPower() == ((Member)t1).getPower()
                             && ((Member)t2).isImaginary()).findAny();
 
@@ -263,6 +279,26 @@ public class MathUtils {
                 || (((Operator) token).getMark() == Mark.DIVIDE
                 && ((Member)tokens.get(i - 1)).getPower() < ((Member)tokens.get(i + 1)).getPower()))) {
             return false;
+        }
+
+        if (((Operator) token).getMark() == Mark.MATRIX_MULTIPLY
+                && (tokens.get(i - 1).getType() != Type.MATRIX
+                || tokens.get(i + 1).getType() != Type.MATRIX)) {
+            throw new InvalidFormException("Matrix multiplication should only be applied to matrices");
+        }
+
+        if (tokens.get(i - 1).getType() == Type.MATRIX || tokens.get(i + 1).getType() == Type.MATRIX) {
+            if (((Operator) token).getMark() == Mark.MULTIPLY) {
+                if (tokens.get(i - 1).getType() == Type.MATRIX && tokens.get(i + 1).getType() == Type.MATRIX) {
+                    throw new InvalidFormException("Multiplication between matrices must " +
+                            "be applied with the symbol \"**\"");
+                }
+
+                if ((tokens.get(i - 1).getType() == Type.MATRIX && tokens.get(i + 1).getType() != Type.NUMBER)
+                        || (tokens.get(i + 1).getType() == Type.MATRIX && tokens.get(i - 1).getType() != Type.NUMBER)) {
+                    return false;
+                }
+            }
         }
 
         if (((Operator) token).getMark() == Mark.DIVIDE

@@ -29,12 +29,12 @@ public class Assignment {
                 Variable var = data.getVariables().stream()
                         .filter(v -> v.getToken().equalsIgnoreCase(t.getToken())).findAny().get();
                 newRight.add(new Operator("("));
-                newRight.addAll(var.getValue());
+                newRight.addAll(var.getCopyValue());
                 newRight.add(new Operator(")"));
             } else if (t.getType() == Type.FUNCTION) {
                 Function func = data.getFunctions().stream()
                         .filter(f -> f.getName().equalsIgnoreCase(((Function)t).getName())).findAny().get();
-                List<Token> value = func.getValue();
+                List<Token> value = func.getCopyValue();
                 String varName = ((Function)t).getMemberName();
 
                 if (varName.matches("-?\\d+(\\.\\d+)?")) {
@@ -59,7 +59,7 @@ public class Assignment {
                     }
                     value.forEach(token -> {
                         if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
-                            nValue.addAll(MathUtils.injectValueAndCalculate(var.get().getValue(), token));
+                            nValue.addAll(MathUtils.injectValueAndCalculate(var.get().getCopyValue(), token));
                         } else {
                             nValue.add(token);
                         }
