@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class Assignment {
     private static final Assignment assignment = new Assignment();
     private final Data data = Data.getInstance();
+    private Printable token;
 
     private Assignment() {}
 
@@ -26,14 +27,12 @@ public class Assignment {
 
         right.forEach(t -> {
             if (t.getType() == Type.VARIABLE) {
-                Variable var = data.getVariables().stream()
-                        .filter(v -> v.getToken().equalsIgnoreCase(t.getToken())).findAny().get();
+                Variable var = data.getVariable(t.getToken());
                 newRight.add(new Operator("("));
                 newRight.addAll(var.getCopyValue());
                 newRight.add(new Operator(")"));
             } else if (t.getType() == Type.FUNCTION) {
-                Function func = data.getFunctions().stream()
-                        .filter(f -> f.getName().equalsIgnoreCase(((Function)t).getName())).findAny().get();
+                Function func = data.getFunction(((Function)t).getName());
                 List<Token> value = func.getCopyValue();
                 String varName = ((Function)t).getMemberName();
 
@@ -73,54 +72,13 @@ public class Assignment {
                 newRight.add(t);
             }
         });
-        if (left.get(0).getType() == Type.VARIABLE) {
-            assignToVariable((Variable)left.get(0), newRight);
-
-            data.getVariables().forEach(v -> {
-                if (v.getToken().equalsIgnoreCase(left.get(0).getToken())) {
-                    System.out.println(v.getValueToString());
-                }
-            });
-        }
-
-        if (left.get(0).getType() == Type.FUNCTION) {
-            assignToFunction((Function)left.get(0), newRight);
-
-            data.getFunctions().forEach(f -> {
-                if (f.getName().equalsIgnoreCase(((Function)left.get(0)).getName())) {
-                    System.out.println(f.getValueToString());
-                }
-            });
-        }
+        this.token = (Printable) left.get(0);
+        List<Token> value = MathUtils.calculateOnePart(newRight);
+        token.setValue(value);
+        data.updateToken((Token)token);
     }
 
-    private void assignToVariable(Variable var, List<Token> right) {
-        List<Token> value = MathUtils.calculateOnePart(right);
-
-        if (data.getVariables().stream().noneMatch(v -> v.getToken().equalsIgnoreCase(var.getToken()))) {
-            var.setValue(value);
-            data.addVariable(var);
-        } else {
-            data.getVariables().forEach(v -> {
-                if (v.getToken().equalsIgnoreCase(var.getToken())) {
-                    v.setValue(value);
-                }
-            });
-        }
-    }
-
-    private void assignToFunction(Function func, List<Token> right) {
-        List<Token> value = MathUtils.calculateOnePart(right);
-
-        if (data.getFunctions().stream().noneMatch(f -> f.getName().equalsIgnoreCase(func.getName()))) {
-            func.setValue(value);
-            data.addFunction(func);
-        } else {
-            data.getFunctions().forEach(f -> {
-                if (f.getName().equalsIgnoreCase(func.getName())) {
-                    f.setValue(value);
-                }
-            });
-        }
+    public Printable getToken() {
+        return token;
     }
 }

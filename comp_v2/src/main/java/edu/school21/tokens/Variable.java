@@ -7,7 +7,7 @@ import edu.school21.types.Type;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Variable extends Token {
+public class Variable extends Token implements Printable {
     private String name;
     private List<Token> value;
 

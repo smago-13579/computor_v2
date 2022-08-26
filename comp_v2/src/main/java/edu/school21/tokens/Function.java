@@ -7,7 +7,7 @@ import edu.school21.types.Type;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Function extends Token {
+public class Function extends Token implements Printable {
     private String name;
     private String memberName;
     private List<Token> value;

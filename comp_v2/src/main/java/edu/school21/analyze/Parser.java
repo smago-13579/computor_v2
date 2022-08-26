@@ -32,7 +32,6 @@ public class Parser {
 
         if (tokens.stream().noneMatch(t -> t.getType() == Type.QUESTION)) {
             checkVariables();
-            Assignment.getInstance().assign(left, right);
         }
     }
 
@@ -71,13 +70,13 @@ public class Parser {
             }).collect(Collectors.toList());
         }
         right.stream().filter(t -> t.getType() == Type.VARIABLE).forEach(t -> {
-            if (data.getVariables().stream().noneMatch(v -> v.getToken().equalsIgnoreCase(t.getToken()))) {
+            if (data.getVariable(t.getToken()) == null) {
                 throw new VariableNotFoundException(t.getToken());
             }
         });
 
         right.stream().filter(t -> t.getType() == Type.FUNCTION).forEach(t -> {
-            if (data.getFunctions().stream().noneMatch(f -> f.getName().equalsIgnoreCase(((Function)t).getName()))) {
+            if (data.getFunction(((Function)t).getName()) == null) {
                 throw new FunctionNotFoundException(t.getToken());
             }
         });
@@ -221,5 +220,13 @@ public class Parser {
 
     public List<Token> getTokens() {
         return tokens;
+    }
+
+    public List<Token> getLeft() {
+        return left;
+    }
+
+    public List<Token> getRight() {
+        return right;
     }
 }

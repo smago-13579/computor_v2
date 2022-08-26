@@ -1,7 +1,11 @@
 package edu.school21.data;
 
+import edu.school21.exceptions.FunctionNotFoundException;
+import edu.school21.exceptions.VariableNotFoundException;
 import edu.school21.tokens.Function;
+import edu.school21.tokens.Token;
 import edu.school21.tokens.Variable;
+import edu.school21.types.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +20,26 @@ public class Data {
 
     public static Data getInstance() {
         return data;
+    }
+
+    public void updateToken(Token token) {
+        if (token.getType() == Type.FUNCTION) {
+            Function func = getFunction(((Function)token).getName());
+
+            if (func != null) {
+                functions.remove(func);
+            }
+            addFunction((Function)token);
+        }
+
+        if (token.getType() == Type.VARIABLE) {
+            Variable var = getVariable(token.getToken());
+
+            if (var != null) {
+                variables.remove(var);
+            }
+            addVariable((Variable)token);
+        }
     }
 
     public void addVariable(Variable variable) {
@@ -40,5 +64,23 @@ public class Data {
 
     public List<String> getHistory() {
         return history;
+    }
+
+    public Variable getVariable(String form) {
+        for (Variable variable : this.variables) {
+            if (variable.getToken().equalsIgnoreCase(form)) {
+                return variable;
+            }
+        }
+        return null;
+    }
+
+    public Function getFunction(String form) {
+        for (Function function : this.functions) {
+            if (function.getName().equalsIgnoreCase(form)) {
+                return function;
+            }
+        }
+        return null;
     }
 }
