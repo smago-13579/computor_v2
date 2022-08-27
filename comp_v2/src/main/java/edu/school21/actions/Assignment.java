@@ -25,7 +25,7 @@ public class Assignment {
     public void assign(List<Token> left, List<Token> right) {
         List<Token> newRight = new LinkedList<>();
 
-        right.forEach(t -> {
+        for (Token t : right) {
             if (t.getType() == Type.VARIABLE) {
                 Variable var = data.getVariable(t.getToken());
                 newRight.add(new Operator("("));
@@ -71,7 +71,7 @@ public class Assignment {
             } else {
                 newRight.add(t);
             }
-        });
+        }
         this.token = (Printable) left.get(0);
         List<Token> value = MathUtils.calculateOnePart(newRight);
         token.setValue(value);

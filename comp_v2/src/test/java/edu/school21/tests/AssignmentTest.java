@@ -1,9 +1,7 @@
 package edu.school21.tests;
 
-import edu.school21.analyze.Lexer;
 import edu.school21.analyze.Parser;
 import edu.school21.data.Data;
-import edu.school21.exceptions.InvalidFormException;
 import edu.school21.service.Service;
 import edu.school21.tokens.Function;
 import edu.school21.tokens.Variable;
@@ -11,29 +9,15 @@ import edu.school21.types.Type;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AssignmentTest {
-    Lexer lexer = Lexer.getInstance();
     Parser parser = Parser.getInstance();
     Data data = Data.getInstance();
     Service service = Service.getInstance();
-
-    @ParameterizedTest
-    @ValueSource(strings = {"y = ", "varA = ", "= 10", "y = 10 = 2", "varA 10",
-            "y = (10 + 2", "(y + 2 = ) 10", "y = ) 10", "varA = ) ( 10", "10= y",
-            "f(x) = () + 10", "f(x) = (x + 10)1 + 10", "f(x) = (+ 10) + 10",
-            "f(x) = (x + 10) (1 + 10)", "f(x) = (x + 10)x + 10", "y = 10 10", "y = 2* + 10",
-            "y = x x", "y = f(1) f(2)"})
-    public void errorCheckParser(String form) {
-        lexer.processing(form);
-        assertThrows(InvalidFormException.class, () -> parser.processing(lexer.getTokens()));
-    }
 
     @ParameterizedTest
     @MethodSource("variablesFunctions_testA")
@@ -68,7 +52,19 @@ public class AssignmentTest {
                 Arguments.of("varD = f(2)", "152 + 2 / i * 2 "),
                 Arguments.of("z(x) = 4 * i * x", "4i * x "),
                 Arguments.of("varC = z(1)", "4i "),
-                Arguments.of("varD = z(2)", "8i ")
+                Arguments.of("varD = z(2)", "8i "),
+                Arguments.of("f(x) = x ^ 2 + 1", "x^2 + 1 "),
+                Arguments.of("y(x) = x - 1", "x - 1 "),
+                Arguments.of("a(x) = f(x) * y(x)", "x^3 - x^2 + x - 1 "),
+                Arguments.of("f(x) = x * (x + i + 1)", "x * ( x + i + 1 ) "),
+                Arguments.of("f(x) = 10 * (x + i + 2)", "10x + 10i + 20 "),
+                Arguments.of("f(x) = (i + 1) * (i - 1) + x /i", "- 2 + x / i "),
+                Arguments.of("f(x) = 4 * i * (i + 1) - 2 * (x + 10) / 2 * x", "- x^2 - 10x + 4i - 4 "),
+                Arguments.of("f(x) = (x + 1) ^ 2", "x^2 + 2x + 1 "),
+                Arguments.of("f(x) = (x - 1) ^ 4", "x^4 - 4x^3 + 6x^2 - 4x + 1 "),
+                Arguments.of("f(x) = (x + 1) * (i + 1)", "( x + 1 ) * ( i + 1 ) "),
+                Arguments.of("f(x) = (x + 1) * (x - 1) + x / i", "x^2 - 1 + x / i "),
+                Arguments.of("f(x) = (x^2 - x + 1) * (x - 1)", "x^3 - 2x^2 + 2x - 1 ")
                 );
     }
 

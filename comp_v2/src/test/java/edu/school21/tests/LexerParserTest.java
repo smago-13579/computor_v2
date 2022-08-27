@@ -4,23 +4,15 @@ import edu.school21.analyze.Lexer;
 import edu.school21.analyze.Parser;
 import edu.school21.exceptions.InvalidFormException;
 import edu.school21.exceptions.InvalidSymbolException;
-import edu.school21.tokens.*;
-import edu.school21.tokens.Number;
 import edu.school21.types.Type;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-public class LexerTest {
+public class LexerParserTest {
     Lexer lexer = Lexer.getInstance();
+    Parser parser = Parser.getInstance();
 
     @ParameterizedTest
     @ValueSource(strings = {"varA = 1", "y = 0", "x = 1"})
@@ -65,5 +57,16 @@ public class LexerTest {
             "m = [ []; [2];[3]]", "m = [ [2]; [2];[3];]", "m = [ ]", "m=[", "m=[]", "m = [ [2]; [2];[3];]]" })
     public void errorCheckMatrixA(String form) {
         assertThrows(InvalidFormException.class, () -> lexer.processing(form));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"y = ", "varA = ", "= 10", "y = 10 = 2", "varA 10",
+            "y = (10 + 2", "(y + 2 = ) 10", "y = ) 10", "varA = ) ( 10", "10= y",
+            "f(x) = () + 10", "f(x) = (x + 10)1 + 10", "f(x) = (+ 10) + 10",
+            "f(x) = (x + 10) (1 + 10)", "f(x) = (x + 10)x + 10", "y = 10 10", "y = 2* + 10",
+            "y = x x", "y = f(1) f(2)"})
+    public void errorCheckParser(String form) {
+        lexer.processing(form);
+        assertThrows(InvalidFormException.class, () -> parser.processing(lexer.getTokens()));
     }
 }

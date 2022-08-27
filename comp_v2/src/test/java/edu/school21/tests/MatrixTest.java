@@ -1,17 +1,23 @@
 package edu.school21.tests;
 
-import edu.school21.analyze.Lexer;
-import edu.school21.analyze.Parser;
+import edu.school21.data.Data;
 import edu.school21.exceptions.InvalidFormException;
 import edu.school21.service.Service;
+import edu.school21.tokens.Variable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class MatrixTest {
     Service service = Service.getInstance();
+    Data data = Data.getInstance();
 
     @BeforeAll
     static void createVars() {
@@ -20,19 +26,26 @@ public class MatrixTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"varA = [[1]; [1]]\tvarB = [[2]; [2]]\tvarC = varA*varB"})
+    @ValueSource(strings = {"C = varA * varB"})
     public void errorCheckMatrix(String form) {
-        String[] parts = form.split("\t");
-
-        service.perform(parts[0]);
-        service.perform(parts[1]);
-        assertThrows(InvalidFormException.class, () -> service.perform(parts[2]));
+        assertThrows(InvalidFormException.class, () -> service.perform(form));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"varC = varA ** varB", "varD = varB - varA", "varD = varA + varB",
-            "varX = varB * 2", "varY = varX * 2"})
-    public void calcMatrixA(String form) {
+    @MethodSource("matrix_testA")
+    public void calcMatrixA(String form, String expected) {
         service.perform(form);
+        Variable variable = data.getVariable(form.substring(0, 4));
+        assertEquals(expected, variable.getValueToString());
+    }
+
+    private static Stream<Arguments> matrix_testA() {
+        return Stream.of(
+                Arguments.of("varC = varA ** varB", "[ 6 , 6 , 6 ]\n[ 6 , 6 , 6 ]\n[ 6 , 6 , 6 ]\n"),
+                Arguments.of("varD = varB - varA", "[ 1 , 1 , 1 ]\n[ 1 , 1 , 1 ]\n[ 1 , 1 , 1 ]\n"),
+                Arguments.of("varD = varA + varB", "[ 3 , 3 , 3 ]\n[ 3 , 3 , 3 ]\n[ 3 , 3 , 3 ]\n"),
+                Arguments.of("varX = varB * 2", "[ 4 , 4 , 4 ]\n[ 4 , 4 , 4 ]\n[ 4 , 4 , 4 ]\n"),
+                Arguments.of("varY = varX * 2", "[ 8 , 8 , 8 ]\n[ 8 , 8 , 8 ]\n[ 8 , 8 , 8 ]\n")
+        );
     }
 }
