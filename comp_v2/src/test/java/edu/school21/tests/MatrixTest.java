@@ -2,6 +2,7 @@ package edu.school21.tests;
 
 import edu.school21.data.Data;
 import edu.school21.exceptions.InvalidFormException;
+import edu.school21.exceptions.InvalidPowerException;
 import edu.school21.service.Service;
 import edu.school21.tokens.Variable;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,9 +27,16 @@ public class MatrixTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"C = varA * varB"})
-    public void errorCheckMatrix(String form) {
+    @ValueSource(strings = {"C = varA * varB", "C = varA * i", "c = [[1, 1, 1]] * i", "c = varA + 10",
+            "c = [[1, 1, 1]] + 5"})
+    public void errorCheckMatrixA(String form) {
         assertThrows(InvalidFormException.class, () -> service.perform(form));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"C = 2 ^ varA"})
+    public void errorCheckMatrixB(String form) {
+        assertThrows(InvalidPowerException.class, () -> service.perform(form));
     }
 
     @ParameterizedTest
@@ -45,7 +53,8 @@ public class MatrixTest {
                 Arguments.of("varD = varB - varA", "[ 1 , 1 , 1 ]\n[ 1 , 1 , 1 ]\n[ 1 , 1 , 1 ]\n"),
                 Arguments.of("varD = varA + varB", "[ 3 , 3 , 3 ]\n[ 3 , 3 , 3 ]\n[ 3 , 3 , 3 ]\n"),
                 Arguments.of("varX = varB * 2", "[ 4 , 4 , 4 ]\n[ 4 , 4 , 4 ]\n[ 4 , 4 , 4 ]\n"),
-                Arguments.of("varY = varX * 2", "[ 8 , 8 , 8 ]\n[ 8 , 8 , 8 ]\n[ 8 , 8 , 8 ]\n")
-        );
+                Arguments.of("varY = varX * 2", "[ 8 , 8 , 8 ]\n[ 8 , 8 , 8 ]\n[ 8 , 8 , 8 ]\n"),
+                Arguments.of("varC = varB ^ 2", "[ 12 , 12 , 12 ]\n[ 12 , 12 , 12 ]\n[ 12 , 12 , 12 ]\n")
+                );
     }
 }

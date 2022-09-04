@@ -1,7 +1,5 @@
 package edu.school21.app;
 
-import edu.school21.analyze.Lexer;
-import edu.school21.analyze.Parser;
 import edu.school21.service.Service;
 
 import java.util.Scanner;

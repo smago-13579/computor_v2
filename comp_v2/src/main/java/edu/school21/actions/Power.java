@@ -1,11 +1,10 @@
 package edu.school21.actions;
 
+import edu.school21.exceptions.InvalidFormException;
 import edu.school21.exceptions.InvalidPowerException;
 import edu.school21.exceptions.UnknownFormatException;
-import edu.school21.tokens.Member;
+import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
-import edu.school21.tokens.Operator;
-import edu.school21.tokens.Token;
 import edu.school21.types.Mark;
 import edu.school21.types.Type;
 
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 public class Power {
     public static List<Token> calculate(List<Token> tokens) {
         List<Token> tmp = tokens.stream().filter(t -> t.getType() == Type.OPERATOR
-                        && ((Operator) t).getMark() == Mark.POWER).collect(Collectors.toList());
+                && ((Operator) t).getMark() == Mark.POWER).toList();
 
         for (Token t : tmp) {
             int i = tokens.indexOf(t);
@@ -71,6 +70,10 @@ public class Power {
     }
 
     public static Token power(Token t1, Token t2) {
+        if (t2.getType() == Type.MATRIX) {
+            throw new InvalidPowerException("Matrix can't be used as a power");
+        }
+
         if (t2.getType() != Type.NUMBER || t1.getType() == Type.OPERATOR) {
             return null;
         }
@@ -92,8 +95,19 @@ public class Power {
             return member;
         }
 
-        //power matrix
+        if (t1.getType() == Type.MATRIX) {
+            return matrixPower((Matrix)t1, (int)t2.getNum());
+        }
         throw new UnknownFormatException("Unknown format in MathUtils.power() : " + t1.getToken());
+    }
+
+    public static Matrix matrixPower(Matrix m1, int power) {
+        Matrix matrix = Multiply.multiplyMatrix(m1, m1);
+
+        while (--power > 1) {
+            matrix = Multiply.multiplyMatrix(matrix, m1);
+        }
+        return matrix;
     }
 
     public static float power(float f, int i) {

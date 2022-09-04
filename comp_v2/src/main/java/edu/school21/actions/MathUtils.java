@@ -84,7 +84,7 @@ public class MathUtils {
 
         List<Token> operators = tokens.stream().filter(t -> t.getType() == Type.OPERATOR
                 && (((Operator) t).getMark() == Mark.MINUS
-                || ((Operator) t).getMark() == Mark.PLUS)).collect(Collectors.toList());
+                || ((Operator) t).getMark() == Mark.PLUS)).toList();
 
         for (Token t : operators) {
             int i = tokens.indexOf(t);
@@ -103,7 +103,7 @@ public class MathUtils {
         int i, j;
         List<Token> operators = tokens.stream().filter(t -> t.getType() == Type.OPERATOR
                 && ((Operator) t).getMark() != Mark.MINUS
-                && ((Operator) t).getMark() != Mark.PLUS).collect(Collectors.toList());
+                && ((Operator) t).getMark() != Mark.PLUS).toList();
         List<Token> tmp = new LinkedList<>();
 
         for (Token t : operators) {
@@ -200,6 +200,15 @@ public class MathUtils {
                 .map(Token::getNum).reduce((float) 0, Float::sum);
         members.add(new Number(sum));
         members = members.stream().filter(t -> t.getNum() != 0).collect(Collectors.toList());
+
+        if (members.size() == 0) {
+            members.add(new Number(0));
+        }
+
+        if (members.stream().anyMatch(t -> t.getType() == Type.MATRIX) && members.size() > 1) {
+            throw new InvalidFormException("Addition, subtraction of matrices should be applied " +
+                    "only to matrices of equal size");
+        }
         return members;
     }
 
@@ -232,8 +241,7 @@ public class MathUtils {
             return t;
         }).collect(Collectors.toList());
 
-        List<Token> tmp = tokens.stream().filter(t -> t.getType() == Type.NUMBER && t.getNum() == 1)
-                .collect(Collectors.toList());
+        List<Token> tmp = tokens.stream().filter(t -> t.getType() == Type.NUMBER && t.getNum() == 1).toList();
 
         for (Token t : tmp) {
             int i = tokens.indexOf(t);
@@ -296,7 +304,7 @@ public class MathUtils {
 
                 if ((tokens.get(i - 1).getType() == Type.MATRIX && tokens.get(i + 1).getType() != Type.NUMBER)
                         || (tokens.get(i + 1).getType() == Type.MATRIX && tokens.get(i - 1).getType() != Type.NUMBER)) {
-                    return false;
+                    throw new InvalidFormException("Matrix multiplication cannot be applied to a non-numeric type");
                 }
             }
         }
