@@ -2,6 +2,8 @@ package edu.school21.tests;
 
 import edu.school21.analyze.Parser;
 import edu.school21.data.Data;
+import edu.school21.exceptions.InvalidFormException;
+import edu.school21.exceptions.InvalidPowerException;
 import edu.school21.service.Service;
 import edu.school21.tokens.Function;
 import edu.school21.tokens.Variable;
@@ -9,15 +11,23 @@ import edu.school21.types.Type;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AssignmentTest {
     Parser parser = Parser.getInstance();
     Data data = Data.getInstance();
     Service service = Service.getInstance();
+
+    @ParameterizedTest
+    @ValueSource(strings = {"A = 2 ^ (-1)", "A = 2 ^ (-2)", "f(x) = x ^ (-2)", "f(x) = x ^ (-10 + 7)"})
+    public void errorCheckA(String form) {
+        assertThrows(InvalidPowerException.class, () -> service.perform(form));
+    }
 
     @ParameterizedTest
     @MethodSource("variablesFunctions_testA")
@@ -44,6 +54,8 @@ public class AssignmentTest {
     private static Stream<Arguments> variablesFunctions_testA() {
         return Stream.of(
                 Arguments.of("f(x) = x ^ 2 + 1", "x^2 + 1 "),
+                Arguments.of("varA = 3 + 5 - 8 ", "0 "),
+                Arguments.of("varA = 3 + 5 - 8 - i", "- i "),
                 Arguments.of("varA = 3", "3 "),
                 Arguments.of("varB = (1 + f(varA))", "11 "),
                 Arguments.of("f(x) = 2x^2 + x * 10 - 125 + 2/i*x + 25 + 2^x + 200 + 10x ",

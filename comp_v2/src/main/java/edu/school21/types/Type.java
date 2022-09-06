@@ -7,7 +7,6 @@ public enum Type {
     MEMBER,
     OPERATOR,
     NUMBER,
-    SQUARE_BRACKET,
     EQUALITY,
     QUESTION
 }

@@ -1,6 +1,5 @@
 package edu.school21.analyze;
 
-import edu.school21.actions.Assignment;
 import edu.school21.data.Data;
 import edu.school21.exceptions.FunctionNotFoundException;
 import edu.school21.exceptions.InvalidFormException;
@@ -16,6 +15,7 @@ public class Parser {
     private static final Parser parser = new Parser();
     private final Data data = Data.getInstance();
     private List<Token> tokens, left, right;
+    private boolean hasQuestion;
 
     private Parser() {
     }
@@ -29,21 +29,27 @@ public class Parser {
         this.tokens = tokens;
         checkEqualityAndParenthesis();
         checkExpression();
+        findImaginaryAndCreate();
+        splitTokensWithEquality();
 
         if (tokens.stream().noneMatch(t -> t.getType() == Type.QUESTION)) {
-            checkVariables();
+            checkVariablesBeforeAssignment();
+            hasQuestion = false;
+        } else {
+            checkVariablesBeforeCalculate();
+            hasQuestion = true;
         }
     }
 
-    private void checkVariables() {
-        tokens = tokens.stream().map(t -> {
-            if (t.getToken().equalsIgnoreCase("i")) {
-                return new Member("i");
-            }
-            return t;
-        }).collect(Collectors.toList());
-        splitTokensWithEquality();
+    private void checkVariablesBeforeCalculate() {
+        if (tokens.stream().filter(t -> t.getType() == Type.QUESTION).count() > 1
+                || right.get(right.size() - 1).getType() != Type.QUESTION) {
+            throw new InvalidFormException("Incorrect expression: question mark \"?\" must be last");
+        }
+        checkVariables();
+    }
 
+    private void checkVariablesBeforeAssignment() {
         if (left.size() != 1) {
             throw new InvalidFormException("Incorrect expression: " + Token.getTokens(tokens));
         }
@@ -51,9 +57,18 @@ public class Parser {
         if (left.get(0).getType() == Type.MEMBER) {
             throw new InvalidFormException("Can't assign to variable: " + left.get(0).getToken());
         }
+        checkVariables();
+    }
 
+    private void checkVariables() {
         if (left.get(0).getType() == Type.FUNCTION) {
-            for (char c : ((Function) left.get(0)).getMemberName().toCharArray()) {
+            String memberName = ((Function) left.get(0)).getMemberName();
+
+            if (memberName.equalsIgnoreCase("i")) {
+                throw new InvalidFormException("Incorrect variable name inside function: " + memberName);
+            }
+
+            for (char c : memberName.toCharArray()) {
                 if ((c < 65 || c > 90) && (c < 97 || c > 122)) {
                     throw new InvalidFormException("Incorrect variable name inside function: "
                             + left.get(0).getToken());
@@ -61,10 +76,8 @@ public class Parser {
             }
 
             right = right.stream().map(t -> {
-                String name = ((Function) left.get(0)).getMemberName();
-
-                if (t.getType() == Type.VARIABLE && t.getToken().equalsIgnoreCase(name)) {
-                    return new Member(name);
+                if (t.getType() == Type.VARIABLE && t.getToken().equalsIgnoreCase(memberName)) {
+                    return new Member(memberName);
                 }
                 return t;
             }).collect(Collectors.toList());
@@ -80,6 +93,15 @@ public class Parser {
                 throw new FunctionNotFoundException(t.getToken());
             }
         });
+    }
+
+    private void findImaginaryAndCreate() {
+        tokens = tokens.stream().map(t -> {
+            if (t.getToken().equalsIgnoreCase("i")) {
+                return new Member("i");
+            }
+            return t;
+        }).toList();
     }
 
     private void checkExpression() {
@@ -116,6 +138,12 @@ public class Parser {
                 checkTokensForValidity(right.get(i), right.get(i + 1));
             }
         }
+
+        for (int i = 0; i < left.size(); i++) {
+            if (i + 1 < left.size()) {
+                checkTokensForValidity(left.get(i), left.get(i + 1));
+            }
+        }
     }
 
     private void checkTokensForValidity(Token t1, Token t2) {
@@ -138,16 +166,6 @@ public class Parser {
                 throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " " + t2.getToken());
             }
         }
-
-//        if (t2.getType() == Type.OPERATOR && ((Operator)t2).getMark() == Mark.MATRIX_MULTIPLY) {
-//            int index = right.indexOf(t2);
-//            Token tmp = right.get(index + 1);
-//
-//            if (t1.getType() != Type.MATRIX || tmp.getType() != Type.MATRIX) {
-//                throw new InvalidFormException("Incorrect expression: " + t1.getToken() + " "
-//                        + t2.getToken() + " " + tmp.getToken());
-//            }
-//        }
 
         if (t1.getType() == Type.MATRIX && t2.getType() == Type.OPERATOR && (((Operator)t2).getMark() == Mark.DIVIDE
                 || ((Operator)t2).getMark() == Mark.MODULO)) {
@@ -182,7 +200,7 @@ public class Parser {
             throw new InvalidFormException("Incorrect expression: " + Token.getTokens(tokens));
         }
         List<Token> operators = tokens.stream().filter(t ->
-                (t.getType() == Type.EQUALITY || t.getType() == Type.OPERATOR)).collect(Collectors.toList());
+                (t.getType() == Type.EQUALITY || t.getType() == Type.OPERATOR)).toList();
 
         for (Token token : operators) {
             if (token.getType() == Type.OPERATOR) {
@@ -228,5 +246,9 @@ public class Parser {
 
     public List<Token> getRight() {
         return right;
+    }
+
+    public boolean hasQuestion() {
+        return hasQuestion;
     }
 }

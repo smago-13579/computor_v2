@@ -28,7 +28,7 @@ public class MatrixTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"C = varA * varB", "C = varA * i", "c = [[1, 1, 1]] * i", "c = varA + 10",
-            "c = [[1, 1, 1]] + 5"})
+            "c = [[1, 1, 1]] + 5", "c = varA % 2"})
     public void errorCheckMatrixA(String form) {
         assertThrows(InvalidFormException.class, () -> service.perform(form));
     }

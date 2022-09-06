@@ -22,8 +22,13 @@ public class Service {
     public void perform(String form) {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
-        assignment.assign(parser.getLeft(), parser.getRight());
-        print(assignment.getToken());
+
+        if (!parser.hasQuestion()) {
+            assignment.assign(parser.getLeft(), parser.getRight());
+            print(assignment.getToken());
+        } else {
+
+        }
     }
 
     public void print(Printable token) {

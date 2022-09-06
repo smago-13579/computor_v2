@@ -1,5 +1,6 @@
 package edu.school21.actions;
 
+import edu.school21.exceptions.InvalidPowerException;
 import edu.school21.tokens.Member;
 import edu.school21.tokens.Operator;
 import edu.school21.tokens.Token;
@@ -61,6 +62,19 @@ public class Parenthesis {
 
         if (last != tokens.size() - 1) {
             aft = tokens.get(last + 1);
+        }
+
+        if (bef != null && ((Operator) bef).getMark() == Mark.POWER) {
+            tokens.subList(first + 1, last).forEach(t -> {
+                if (t.getType() == Type.MEMBER && ((Member)t).isImaginary()) {
+                    throw new InvalidPowerException("Power cannot be imaginary number");
+                }
+            });
+
+            if (last - first == 2 && tokens.get(first + 1).getType() == Type.NUMBER
+                    && tokens.get(first + 1).getNum() < 0) {
+                throw new InvalidPowerException("Power cannot be negative number");
+            }
         }
 
         if ((last - first == 2 && (tokens.get(first + 1).getNum() >= 0 || bef == null))

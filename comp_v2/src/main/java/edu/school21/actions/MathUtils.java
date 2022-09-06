@@ -94,7 +94,7 @@ public class MathUtils {
             }
             tokens.remove(i);
         }
-        tokens = addition(tokens);
+        tokens = addition(tokens, tmp);
         tokens.addAll(tmp);
         return tokens;
     }
@@ -152,6 +152,20 @@ public class MathUtils {
         return i;
     }
 
+    public static List<Token> addition(List<Token> tokens, List<Token> tmp) {
+        tokens = addition(tokens);
+
+        if (tmp.size() == 0 && tokens.size() == 0) {
+            tokens.add(new Number(0));
+        }
+
+        if (tmp.size() > 0 && tokens.size() > 0 && tokens.get(0).getType() == Type.MATRIX) {
+            throw new InvalidFormException("Addition, subtraction of matrices should be applied " +
+                    "only to matrices of equal size");
+        }
+        return tokens;
+    }
+
     public static List<Token> addition(List<Token> tokens) {
         List<Token> members = new LinkedList<>();
 
@@ -200,10 +214,6 @@ public class MathUtils {
                 .map(Token::getNum).reduce((float) 0, Float::sum);
         members.add(new Number(sum));
         members = members.stream().filter(t -> t.getNum() != 0).collect(Collectors.toList());
-
-        if (members.size() == 0) {
-            members.add(new Number(0));
-        }
 
         if (members.stream().anyMatch(t -> t.getType() == Type.MATRIX) && members.size() > 1) {
             throw new InvalidFormException("Addition, subtraction of matrices should be applied " +
@@ -306,6 +316,10 @@ public class MathUtils {
                         || (tokens.get(i + 1).getType() == Type.MATRIX && tokens.get(i - 1).getType() != Type.NUMBER)) {
                     throw new InvalidFormException("Matrix multiplication cannot be applied to a non-numeric type");
                 }
+            }
+
+            if (((Operator) token).getMark() == Mark.MODULO) {
+                throw new InvalidFormException("Modulo can't be applied to matrix");
             }
         }
 
