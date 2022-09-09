@@ -1,6 +1,7 @@
 package edu.school21.service;
 
 import edu.school21.actions.Assignment;
+import edu.school21.actions.Compute;
 import edu.school21.analyze.Lexer;
 import edu.school21.analyze.Parser;
 import edu.school21.data.Data;
@@ -12,6 +13,7 @@ public class Service {
     private final Parser parser = Parser.getInstance();
     private final Data data = Data.getInstance();
     private final Assignment assignment = Assignment.getInstance();
+    private final Compute compute = Compute.getInstance();
 
     private Service() {}
 
@@ -23,11 +25,11 @@ public class Service {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
 
-        if (!parser.hasQuestion()) {
+        if (parser.hasQuestion()) {
+            compute.compute(parser.getLeft(), parser.getRight());
+        } else {
             assignment.assign(parser.getLeft(), parser.getRight());
             print(assignment.getToken());
-        } else {
-
         }
     }
 

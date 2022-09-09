@@ -46,7 +46,7 @@ public class Parser {
                 || right.get(right.size() - 1).getType() != Type.QUESTION) {
             throw new InvalidFormException("Incorrect expression: question mark \"?\" must be last");
         }
-        checkVariables();
+        checkVariablesCalculate();
     }
 
     private void checkVariablesBeforeAssignment() {
@@ -54,13 +54,43 @@ public class Parser {
             throw new InvalidFormException("Incorrect expression: " + Token.getTokens(tokens));
         }
 
+        if (left.get(0).getType() != Type.VARIABLE && left.get(0).getType() != Type.FUNCTION) {
+            throw new InvalidFormException("Incorrect expression: " + left.get(0).getToken());
+        }
+
         if (left.get(0).getType() == Type.MEMBER) {
             throw new InvalidFormException("Can't assign to variable: " + left.get(0).getToken());
         }
-        checkVariables();
+        checkVariablesAssign();
     }
 
-    private void checkVariables() {
+    private void checkVariablesCalculate() {
+        left.stream().filter(t -> t.getType() == Type.VARIABLE).forEach(t -> {
+            if (data.getVariable(t.getToken()) == null) {
+                throw new VariableNotFoundException(t.getToken());
+            }
+        });
+
+        left.stream().filter(t -> t.getType() == Type.FUNCTION).forEach(t -> {
+            if (data.getFunction(((Function)t).getName()) == null) {
+                throw new FunctionNotFoundException(t.getToken());
+            }
+        });
+
+        right.stream().filter(t -> t.getType() == Type.VARIABLE).forEach(t -> {
+            if (data.getVariable(t.getToken()) == null) {
+                throw new VariableNotFoundException(t.getToken());
+            }
+        });
+
+        right.stream().filter(t -> t.getType() == Type.FUNCTION).forEach(t -> {
+            if (data.getFunction(((Function)t).getName()) == null) {
+                throw new FunctionNotFoundException(t.getToken());
+            }
+        });
+    }
+
+    private void checkVariablesAssign() {
         if (left.get(0).getType() == Type.FUNCTION) {
             String memberName = ((Function) left.get(0)).getMemberName();
 
@@ -113,11 +143,11 @@ public class Parser {
             }
         }
         splitTokensWithEquality();
-
-        if (left.size() == 1 && left.get(0).getType() != Type.VARIABLE
-                && left.get(0).getType() != Type.FUNCTION) {
-            throw new InvalidFormException("Incorrect expression: " + left.get(0).getToken());
-        }
+        //TODO calculate is it possible (1 = ?)
+//        if (left.size() == 1 && left.get(0).getType() != Type.VARIABLE
+//                && left.get(0).getType() != Type.FUNCTION) {
+//            throw new InvalidFormException("Incorrect expression: " + left.get(0).getToken());
+//        }
 
         if (right.size() == 1 && right.get(0).getType() == Type.OPERATOR) {
             throw new InvalidFormException("Incorrect expression: " + right.get(0).getToken());

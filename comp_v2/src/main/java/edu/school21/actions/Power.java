@@ -111,6 +111,8 @@ public class Power {
     }
 
     public static float power(float f, int i) {
+        float j = f;
+
         if (i < 0) {
             throw new InvalidPowerException("Power can't be negative: " + i);
         }
@@ -120,7 +122,7 @@ public class Power {
         }
 
         while (i-- > 1) {
-            f *= f;
+            f = f * j;
         }
         return f;
     }
