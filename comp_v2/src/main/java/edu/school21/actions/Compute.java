@@ -3,6 +3,7 @@ package edu.school21.actions;
 import edu.school21.analyze.Checker;
 import edu.school21.data.Data;
 import edu.school21.exceptions.VariableNotFoundException;
+import edu.school21.math.Maths;
 import edu.school21.tokens.*;
 import edu.school21.tokens.Number;
 import edu.school21.types.Type;
@@ -17,6 +18,7 @@ public class Compute {
     private final Data data = Data.getInstance();
     private final Checker checker = Checker.getInstance();
     private final Assignment assignment = Assignment.getInstance();
+    private final Maths maths = Maths.getInstance();
     private Printable token;
 
     private Compute() {}
@@ -26,11 +28,12 @@ public class Compute {
     }
 
     public void compute(List<Token> left, List<Token> right) {
-        token = new Variable("TmpTokenForPrintValueOnly");
-
         if (right.size() == 1) {
+            token = new Variable("TmpTokenForPrintValueOnly");
             List<Token> value = assignAndCalculate(left, false);
             token.setValue(value);
+            print(token);
+            data.addHistory(token.getValueToString());
         } else {
             List<Token> value = new LinkedList<>();
 
@@ -43,14 +46,9 @@ public class Compute {
             }
             value.add(new Operator(")"));
             value = assignAndCalculate(value, true);
-
-            token.setValue(value);
-            print(token);
-
             checker.checkTokensForPolynomial(value);
-            token.setValue(value);
+            maths.solution(value);
         }
-        print(token);
     }
 
     private List<Token> assignAndCalculate(List<Token> tokens, boolean equation) {
