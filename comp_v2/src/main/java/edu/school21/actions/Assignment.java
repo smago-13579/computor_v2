@@ -37,33 +37,13 @@ public class Assignment {
                 String varName = ((Function)t).getMemberName();
 
                 if (varName.matches("-?\\d+(\\.\\d+)?")) {
-                    float num = Float.parseFloat(((Function)t).getMemberName());
-                    value = value.stream().map(token -> {
-                        if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
-                            Member member = (Member)token;
-                            float f = Power.power(num, member.getPower()) * member.getNum();
-                            return new Number(f);
-                        }
-                        return token;
-                    }).collect(Collectors.toList());
+                    value = injectNumberInsideFunction((Function)t, value);
                 } else if (left.get(0).getType() == Type.VARIABLE
                         || !((Function)left.get(0)).getMemberName().equalsIgnoreCase(varName)) {
-                    List<Token> nValue = new LinkedList<>();
-                    Optional<Variable> var = data.getVariables().stream()
-                            .filter(v -> v.getToken().equalsIgnoreCase(varName))
-                            .findAny();
-
-                    if (var.isEmpty()) {
-                        throw new VariableNotFoundException(varName);
-                    }
-                    value.forEach(token -> {
-                        if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
-                            nValue.addAll(MathUtils.injectValueAndCalculate(var.get().getCopyValue(), token));
-                        } else {
-                            nValue.add(token);
-                        }
-                    });
-                    value = nValue;
+                    value = injectVariableInsideFunctionThenCalculate(value, varName);
+                } else {
+                    value.stream().filter(t2 -> t2.getType() == Type.MEMBER && !((Member)t2).isImaginary())
+                            .forEach(t2 -> ((Member)t2).setName(varName));
                 }
                 newRight.add(new Operator("("));
                 newRight.addAll(value);
@@ -76,6 +56,37 @@ public class Assignment {
         List<Token> value = MathUtils.calculateOnePart(newRight);
         token.setValue(value);
         data.updateToken((Token)token);
+    }
+
+    public List<Token> injectNumberInsideFunction(Function function, List<Token> value) {
+        float num = Float.parseFloat(function.getMemberName());
+        value = value.stream().map(token -> {
+            if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
+                Member member = (Member)token;
+                float f = Power.power(num, member.getPower()) * member.getNum();
+                return new Number(f);
+            }
+            return token;
+        }).toList();
+
+        return value;
+    }
+
+    public List<Token> injectVariableInsideFunctionThenCalculate(List<Token> value, String varName) {
+        List<Token> nValue = new LinkedList<>();
+        Variable var = data.getVariable(varName);
+
+        if (var == null) {
+            throw new VariableNotFoundException(varName);
+        }
+        value.forEach(token -> {
+            if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
+                nValue.addAll(MathUtils.injectValueAndCalculate(var.getCopyValue(), token));
+            } else {
+                nValue.add(token);
+            }
+        });
+        return nValue;
     }
 
     public Printable getToken() {

@@ -54,6 +54,7 @@ public class AssignmentTest {
     private static Stream<Arguments> variablesFunctions_testA() {
         return Stream.of(
                 Arguments.of("f(x) = x ^ 2 + 1", "x^2 + 1 "),
+                Arguments.of("z(y) = f(y)", "y^2 + 1 "),
                 Arguments.of("varA = 3 + 5 - 8 ", "0 "),
                 Arguments.of("varA = 3 + 5 - 8 - i", "- i "),
                 Arguments.of("varA = 3", "3 "),

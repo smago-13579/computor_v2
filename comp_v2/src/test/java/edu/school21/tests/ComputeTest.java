@@ -1,8 +1,13 @@
 package edu.school21.tests;
 
 import edu.school21.actions.Compute;
+import edu.school21.analyze.Checker;
+import edu.school21.analyze.Lexer;
 import edu.school21.analyze.Parser;
 import edu.school21.data.Data;
+import edu.school21.exceptions.InvalidFormException;
+import edu.school21.exceptions.InvalidPolynomialException;
+import edu.school21.exceptions.VariableNotFoundException;
 import edu.school21.service.Service;
 import edu.school21.tokens.Function;
 import edu.school21.tokens.Printable;
@@ -12,14 +17,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ComputeTest {
     Parser parser = Parser.getInstance();
     Data data = Data.getInstance();
+    Lexer lexer = Lexer.getInstance();
+    Checker checker = Checker.getInstance();
     Compute compute = Compute.getInstance();
     Service service = Service.getInstance();
 
@@ -31,6 +40,22 @@ public class ComputeTest {
         Service.getInstance().perform("varC = 2");
         Service.getInstance().perform("f(x) = x ^ 2 + 2x + 1");
         Service.getInstance().perform("y(x) = x ^ 3 + 2x + 1");
+        Service.getInstance().perform("z(y) = y");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"f(x) + x = y + 1 ?", "f(x) + z(y) + x = y ?", "f(x1) = x ?", "f(x) + z(y) = 1 ?",
+            "f(x) = z(y) ?"})
+    public void errorCheckParserA(String form) {
+        lexer.processing(form);
+        assertThrows(InvalidFormException.class, () -> parser.processing(lexer.getTokens()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"f(x) ^ 2 = 10 ?", "f(x)+i=x?", "y(x) = 1?",
+            "x / i = 0?", "x % 10 + 1 = 0 ?", "x * i + 1 = 1 ?", "10 / x = 0?", "10 %x = 0?"})
+    public void errorChecker(String form) {
+        assertThrows(InvalidPolynomialException.class, () -> service.perform(form));
     }
 
     @ParameterizedTest
@@ -55,6 +80,7 @@ public class ComputeTest {
                 Arguments.of("y(varC) = ?", "13 "),
                 Arguments.of("f(varc) + y(varC) = ?", "22 "),
                 Arguments.of("f(1) + y(3) = ?", "38 ")
+//                Arguments.of("f(x) = 0?", "-1 ")
         );
     }
 }

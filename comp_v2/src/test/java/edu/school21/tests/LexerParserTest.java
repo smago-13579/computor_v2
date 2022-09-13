@@ -65,7 +65,7 @@ public class LexerParserTest {
             "f(x) = () + 10", "f(x) = (x + 10)1 + 10", "f(x) = (+ 10) + 10",
             "f(x) = (x + 10) (1 + 10)", "f(x) = (x + 10)x + 10", "y = 10 10", "y = 2* + 10",
             "y = x x", "y = f(1) f(2)", "10 = x", "f(i) = i + 10", "varA = ??",
-            "varA + 5 + ? = ?", "? = 10", "varA? = ?"})
+            "varA + 5 + ? = ?", "? = 10", "varA? = ?", "f(x) = ? 10"})
     public void errorCheckParser(String form) {
         lexer.processing(form);
         assertThrows(InvalidFormException.class, () -> parser.processing(lexer.getTokens()));

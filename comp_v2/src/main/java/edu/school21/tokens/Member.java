@@ -75,4 +75,8 @@ public class Member extends Token {
         }
         return l;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

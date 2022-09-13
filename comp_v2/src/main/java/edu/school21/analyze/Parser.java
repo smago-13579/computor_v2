@@ -1,19 +1,18 @@
 package edu.school21.analyze;
 
 import edu.school21.data.Data;
-import edu.school21.exceptions.FunctionNotFoundException;
 import edu.school21.exceptions.InvalidFormException;
-import edu.school21.exceptions.VariableNotFoundException;
 import edu.school21.tokens.*;
 import edu.school21.types.Mark;
 import edu.school21.types.Type;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 public class Parser {
     private static final Parser parser = new Parser();
     private final Data data = Data.getInstance();
+    private final Checker checker = Checker.getInstance();
     private List<Token> tokens, left, right;
     private boolean hasQuestion;
 
@@ -46,7 +45,76 @@ public class Parser {
                 || right.get(right.size() - 1).getType() != Type.QUESTION) {
             throw new InvalidFormException("Incorrect expression: question mark \"?\" must be last");
         }
-        checkVariablesCalculate();
+
+        if (right.size() == 1) {
+            checkBeforeCalculate();
+        } else {
+            checkBeforeDecision();
+        }
+    }
+
+    private void checkBeforeDecision() {
+        checker.checkFunctions(left);
+        checker.checkFunctions(right);
+        findMemberThenMap(left);
+        findMemberThenMap(right);
+        findOtherMembers();
+
+        Optional<Token> tokenO = left.stream().filter(t -> t.getType() == Type.MEMBER && !((Member)t).isImaginary()).findAny();
+
+        if (tokenO.isEmpty()) {
+            tokenO = right.stream().filter(t -> t.getType() == Type.MEMBER && !((Member)t).isImaginary()).findAny();
+        }
+        tokenO.ifPresent(t -> checker.checkMembers(left, right, t.getToken()));
+    }
+
+    private void findMemberThenMap(List<Token> tokens) {
+        tokens.stream().filter(t -> t.getType() == Type.FUNCTION).forEach(t -> {
+            String varName = ((Function) t).getMemberName();
+
+            if (!varName.matches("-?\\d+(\\.\\d+)?") && data.getVariable(varName) == null) {
+                checker.checkVariableNameInsideFunction(varName);
+                checker.checkVariablesInsideFunctions(varName, left);
+                checker.checkVariablesInsideFunctions(varName, right);
+
+                left = left.stream().map(lt -> {
+                    if (lt.getType() == Type.VARIABLE && lt.getToken().equalsIgnoreCase(varName)) {
+                        return new Member(varName);
+                    }
+                    return lt;
+                }).toList();
+
+                right = right.stream().map(rt -> {
+                    if (rt.getType() == Type.VARIABLE && rt.getToken().equalsIgnoreCase(varName)) {
+                        return new Member(varName);
+                    }
+                    return rt;
+                }).toList();
+            }
+        });
+    }
+
+    private void findOtherMembers() {
+        left = left.stream().map(t -> {
+            if (t.getType() == Type.VARIABLE && data.getVariable(t.getToken()) == null) {
+                return new Member(t.getToken());
+            }
+            return t;
+        }).toList();
+
+        right = right.stream().map(t -> {
+            if (t.getType() == Type.VARIABLE && data.getVariable(t.getToken()) == null) {
+                return new Member(t.getToken());
+            }
+            return t;
+        }).toList();
+    }
+
+    private void checkBeforeCalculate() {
+        checker.checkVariables(left);
+        checker.checkVariables(right);
+        checker.checkFunctions(left);
+        checker.checkFunctions(right);
     }
 
     private void checkVariablesBeforeAssignment() {
@@ -54,75 +122,27 @@ public class Parser {
             throw new InvalidFormException("Incorrect expression: " + Token.getTokens(tokens));
         }
 
+        if (left.get(0).getType() == Type.MEMBER) {
+            throw new InvalidFormException("Can't assign to variable: " + left.get(0).getToken());
+        }
+
         if (left.get(0).getType() != Type.VARIABLE && left.get(0).getType() != Type.FUNCTION) {
             throw new InvalidFormException("Incorrect expression: " + left.get(0).getToken());
         }
 
-        if (left.get(0).getType() == Type.MEMBER) {
-            throw new InvalidFormException("Can't assign to variable: " + left.get(0).getToken());
-        }
-        checkVariablesAssign();
-    }
-
-    private void checkVariablesCalculate() {
-        left.stream().filter(t -> t.getType() == Type.VARIABLE).forEach(t -> {
-            if (data.getVariable(t.getToken()) == null) {
-                throw new VariableNotFoundException(t.getToken());
-            }
-        });
-
-        left.stream().filter(t -> t.getType() == Type.FUNCTION).forEach(t -> {
-            if (data.getFunction(((Function)t).getName()) == null) {
-                throw new FunctionNotFoundException(t.getToken());
-            }
-        });
-
-        right.stream().filter(t -> t.getType() == Type.VARIABLE).forEach(t -> {
-            if (data.getVariable(t.getToken()) == null) {
-                throw new VariableNotFoundException(t.getToken());
-            }
-        });
-
-        right.stream().filter(t -> t.getType() == Type.FUNCTION).forEach(t -> {
-            if (data.getFunction(((Function)t).getName()) == null) {
-                throw new FunctionNotFoundException(t.getToken());
-            }
-        });
-    }
-
-    private void checkVariablesAssign() {
         if (left.get(0).getType() == Type.FUNCTION) {
             String memberName = ((Function) left.get(0)).getMemberName();
-
-            if (memberName.equalsIgnoreCase("i")) {
-                throw new InvalidFormException("Incorrect variable name inside function: " + memberName);
-            }
-
-            for (char c : memberName.toCharArray()) {
-                if ((c < 65 || c > 90) && (c < 97 || c > 122)) {
-                    throw new InvalidFormException("Incorrect variable name inside function: "
-                            + left.get(0).getToken());
-                }
-            }
+            checker.checkVariableNameInsideFunction(memberName);
 
             right = right.stream().map(t -> {
                 if (t.getType() == Type.VARIABLE && t.getToken().equalsIgnoreCase(memberName)) {
                     return new Member(memberName);
                 }
                 return t;
-            }).collect(Collectors.toList());
+            }).toList();
         }
-        right.stream().filter(t -> t.getType() == Type.VARIABLE).forEach(t -> {
-            if (data.getVariable(t.getToken()) == null) {
-                throw new VariableNotFoundException(t.getToken());
-            }
-        });
-
-        right.stream().filter(t -> t.getType() == Type.FUNCTION).forEach(t -> {
-            if (data.getFunction(((Function)t).getName()) == null) {
-                throw new FunctionNotFoundException(t.getToken());
-            }
-        });
+        checker.checkVariables(right);
+        checker.checkFunctions(right);
     }
 
     private void findImaginaryAndCreate() {
@@ -143,11 +163,6 @@ public class Parser {
             }
         }
         splitTokensWithEquality();
-        //TODO calculate is it possible (1 = ?)
-//        if (left.size() == 1 && left.get(0).getType() != Type.VARIABLE
-//                && left.get(0).getType() != Type.FUNCTION) {
-//            throw new InvalidFormException("Incorrect expression: " + left.get(0).getToken());
-//        }
 
         if (right.size() == 1 && right.get(0).getType() == Type.OPERATOR) {
             throw new InvalidFormException("Incorrect expression: " + right.get(0).getToken());

@@ -1,5 +1,6 @@
 package edu.school21.actions;
 
+import edu.school21.analyze.Checker;
 import edu.school21.data.Data;
 import edu.school21.exceptions.VariableNotFoundException;
 import edu.school21.tokens.*;
@@ -14,6 +15,8 @@ import java.util.stream.Collectors;
 public class Compute {
     private static final Compute compute = new Compute();
     private final Data data = Data.getInstance();
+    private final Checker checker = Checker.getInstance();
+    private final Assignment assignment = Assignment.getInstance();
     private Printable token;
 
     private Compute() {}
@@ -23,64 +26,63 @@ public class Compute {
     }
 
     public void compute(List<Token> left, List<Token> right) {
+        token = new Variable("TmpTokenForPrintValueOnly");
+
         if (right.size() == 1) {
-            token = new Variable("TmpTokenForPrintValueOnly");
-            List<Token> value = assignAndCalculate(left);
+            List<Token> value = assignAndCalculate(left, false);
+            token.setValue(value);
+        } else {
+            List<Token> value = new LinkedList<>();
+
+            value.addAll(left);
+            value.add(new Operator("-"));
+            value.add(new Operator("("));
+
+            for (int i = 0; i < right.size() - 1; i++) {
+                value.add(right.get(i));
+            }
+            value.add(new Operator(")"));
+            value = assignAndCalculate(value, true);
+
             token.setValue(value);
             print(token);
+
+            checker.checkTokensForPolynomial(value);
+            token.setValue(value);
         }
+        print(token);
     }
 
-    private List<Token> assignAndCalculate(List<Token> tokens) {
-        List<Token> newRight = new LinkedList<>();
+    private List<Token> assignAndCalculate(List<Token> tokens, boolean equation) {
+        List<Token> tmpTokens = new LinkedList<>();
 
         for (Token t : tokens) {
             if (t.getType() == Type.VARIABLE) {
                 Variable var = data.getVariable(t.getToken());
-                newRight.add(new Operator("("));
-                newRight.addAll(var.getCopyValue());
-                newRight.add(new Operator(")"));
+                tmpTokens.add(new Operator("("));
+                tmpTokens.addAll(var.getCopyValue());
+                tmpTokens.add(new Operator(")"));
             } else if (t.getType() == Type.FUNCTION) {
                 Function func = data.getFunction(((Function)t).getName());
                 List<Token> value = func.getCopyValue();
                 String varName = ((Function)t).getMemberName();
 
                 if (varName.matches("-?\\d+(\\.\\d+)?")) {
-                    float num = Float.parseFloat(((Function)t).getMemberName());
-                    value = value.stream().map(token -> {
-                        if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
-                            Member member = (Member)token;
-                            float f = Power.power(num, member.getPower()) * member.getNum();
-                            return new Number(f);
-                        }
-                        return token;
-                    }).collect(Collectors.toList());
+                    value = assignment.injectNumberInsideFunction((Function) t, value);
+                } else if (!equation || data.getVariable(varName) != null) {
+                    value = assignment.injectVariableInsideFunctionThenCalculate(value, varName);
                 } else {
-                    List<Token> nValue = new LinkedList<>();
-                    Optional<Variable> var = data.getVariables().stream()
-                            .filter(v -> v.getToken().equalsIgnoreCase(varName))
-                            .findAny();
-
-                    if (var.isEmpty()) {
-                        throw new VariableNotFoundException(varName);
-                    }
-                    value.forEach(token -> {
-                        if (token.getType() == Type.MEMBER && !((Member)token).isImaginary()) {
-                            nValue.addAll(MathUtils.injectValueAndCalculate(var.get().getCopyValue(), token));
-                        } else {
-                            nValue.add(token);
-                        }
-                    });
-                    value = nValue;
+                    value.stream().filter(t2 -> t2.getType() == Type.MEMBER && !((Member)t2).isImaginary())
+                            .forEach(t2 -> ((Member)t2).setName(varName));
                 }
-                newRight.add(new Operator("("));
-                newRight.addAll(value);
-                newRight.add(new Operator(")"));
+                tmpTokens.add(new Operator("("));
+                tmpTokens.addAll(value);
+                tmpTokens.add(new Operator(")"));
             } else {
-                newRight.add(t);
+                tmpTokens.add(t);
             }
         }
-        List<Token> value = MathUtils.calculateOnePart(newRight);
+        List<Token> value = MathUtils.calculateOnePart(tmpTokens);
 
         return value;
     }
