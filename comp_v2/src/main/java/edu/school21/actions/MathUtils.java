@@ -34,7 +34,7 @@ public class MathUtils {
 
                 if (!Parenthesis.openParenthesis(tokens, first, last)) {
                     i = last;
-                }   // TODO???
+                }
             }
         }
         tokens = calculate(tokens);
@@ -229,7 +229,15 @@ public class MathUtils {
         int power = ((Member) t2).getPower();
         float f = t2.getNum();
         List<Token> result = Power.power(value, power);
-        result.forEach(t -> t.setNum(f * t.getNum()));
+
+        result = result.stream().map(t -> {
+            if (t.getType() == Type.MATRIX) {
+                t = Multiply.multiply(t, new Number(f));
+            } else {
+                t.setNum(f * t.getNum());
+            }
+            return t;
+        }).toList();
 
         return result;
     }

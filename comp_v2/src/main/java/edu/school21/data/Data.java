@@ -66,6 +66,18 @@ public class Data {
         return history;
     }
 
+    public void printHistory() {
+        history.forEach(System.out::println);
+    }
+
+    public void printVariables() {
+        variables.forEach(v -> System.out.println(v.getToken() + " = " + v.getValueToString()));
+    }
+
+    public void printFunctions() {
+        functions.forEach(f -> System.out.println(f.getToken() + " = " + f.getValueToString()));
+    }
+
     public Variable getVariable(String form) {
         for (Variable variable : this.variables) {
             if (variable.getToken().equalsIgnoreCase(form)) {

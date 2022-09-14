@@ -80,7 +80,6 @@ public class ComputeTest {
                 Arguments.of("y(varC) = ?", "13 "),
                 Arguments.of("f(varc) + y(varC) = ?", "22 "),
                 Arguments.of("f(1) + y(3) = ?", "38 ")
-//                Arguments.of("f(x) = 0?", "-1 ")
         );
     }
 }

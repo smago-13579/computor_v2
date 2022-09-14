@@ -24,7 +24,6 @@ public class Parser {
     }
 
     public void processing(List<Token> tokens) {
-        data.addHistory(Token.getTokens(tokens));
         this.tokens = tokens;
         checkEqualityAndParenthesis();
         checkExpression();

@@ -33,7 +33,6 @@ public class Compute {
             List<Token> value = assignAndCalculate(left, false);
             token.setValue(value);
             print(token);
-            data.addHistory(token.getValueToString());
         } else {
             List<Token> value = new LinkedList<>();
 
@@ -87,6 +86,7 @@ public class Compute {
 
     public void print(Printable token) {
         System.out.println(token.getValueToString());
+        data.addHistory(token.getValueToString());
     }
 
     public Printable getToken() {

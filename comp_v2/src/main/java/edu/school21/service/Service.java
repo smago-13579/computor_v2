@@ -24,6 +24,7 @@ public class Service {
     public void perform(String form) {
         lexer.processing(form);
         parser.processing(lexer.getTokens());
+        data.addHistory(form);
 
         if (parser.hasQuestion()) {
             compute.compute(parser.getLeft(), parser.getRight());
@@ -35,5 +36,6 @@ public class Service {
 
     public void print(Printable token) {
         System.out.println(token.getValueToString());
+        data.addHistory(token.getValueToString());
     }
 }

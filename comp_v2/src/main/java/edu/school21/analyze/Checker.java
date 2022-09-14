@@ -87,6 +87,12 @@ public class Checker {
             }
         });
 
+        tokens.forEach(t -> {
+            if (t.getType() == Type.MATRIX) {
+                throw new InvalidPolynomialException("Could not convert to a polynomial with Matrix");
+            }
+        });
+
         tokens.stream().filter(t -> t.getType() == Type.OPERATOR).forEach(t -> {
             Mark mark = ((Operator)t).getMark();
 

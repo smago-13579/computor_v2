@@ -24,6 +24,8 @@ public class MatrixTest {
     static void createVars() {
         Service.getInstance().perform("varA = [[1, 1, 1] ; [1, 1, 1];[1,1,1]]");
         Service.getInstance().perform("varB = [[2,2,2];[2,2,2];[2,2,2]]");
+        Service.getInstance().perform("f(x) = 2 * x");
+        Service.getInstance().perform("varT = [[1, 1, 1]]");
     }
 
     @ParameterizedTest
@@ -54,7 +56,8 @@ public class MatrixTest {
                 Arguments.of("varD = varA + varB", "[ 3 , 3 , 3 ]\n[ 3 , 3 , 3 ]\n[ 3 , 3 , 3 ]\n"),
                 Arguments.of("varX = varB * 2", "[ 4 , 4 , 4 ]\n[ 4 , 4 , 4 ]\n[ 4 , 4 , 4 ]\n"),
                 Arguments.of("varY = varX * 2", "[ 8 , 8 , 8 ]\n[ 8 , 8 , 8 ]\n[ 8 , 8 , 8 ]\n"),
-                Arguments.of("varC = varB ^ 2", "[ 12 , 12 , 12 ]\n[ 12 , 12 , 12 ]\n[ 12 , 12 , 12 ]\n")
+                Arguments.of("varC = varB ^ 2", "[ 12 , 12 , 12 ]\n[ 12 , 12 , 12 ]\n[ 12 , 12 , 12 ]\n"),
+                Arguments.of("varC = f(varT)", "[ 2 , 2 , 2 ]\n")
                 );
     }
 }
